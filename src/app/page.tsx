@@ -1,102 +1,240 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+
+export default function LandingPage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-[#0c1929] text-white relative overflow-hidden">
+      {/* Blue sun radial glow — center shining outward */}
+      <div className="absolute top-[20%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] rounded-full bg-[radial-gradient(circle,_#2563eb_0%,_#1e40af_20%,_#1e3a8a_35%,_#0c1929_65%)] opacity-50 blur-2xl pointer-events-none z-0" />
+      {/* Navbar */}
+      <nav className="flex items-center justify-between px-8 py-5 max-w-7xl mx-auto relative z-10">
+        <div className="text-2xl font-bold tracking-tight">
+          <span className="text-blue-400">Cross</span>Query
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <div className="flex gap-4">
+          <SignedOut>
+            <Link
+              href="/sign-in"
+              className="px-4 py-2 text-sm text-blue-100/70 hover:text-white transition"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/sign-up"
+              className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 rounded-lg transition"
+            >
+              Get Started Free
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 rounded-lg transition"
+            >
+              Dashboard →
+            </Link>
+          </SignedIn>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="max-w-4xl mx-auto text-center pt-24 pb-16 px-6 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+          <div className="inline-block px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 text-sm mb-6">
+            3 AI Agents Working Together
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-white">
+            Upload. Ask.
+            <br />
+            <span className="bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+              Watch AI Think.
+            </span>
+          </h1>
+          <p className="text-xl text-blue-100/90 max-w-2xl mx-auto mb-10">
+            Your AI data analyst. Upload spreadsheets, ask anything in plain
+            English. 3 AI agents discover how your data connects — and show you
+            exactly how they think.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Link
+              href="/sign-up"
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg text-lg font-medium transition"
+            >
+              Try CrossQuery Free →
+            </Link>
+            <a
+              href="#how-it-works"
+              className="px-8 py-3 border border-[#1e3a5f] hover:border-blue-400 rounded-lg text-lg text-blue-100/80 transition"
+            >
+              See How It Works
+            </a>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="max-w-5xl mx-auto py-20 px-6 relative z-10">
+        <h2 className="text-3xl font-bold text-center mb-16">How It Works</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            {
+              step: "1",
+              icon: "📁",
+              title: "Upload Your Files",
+              desc: "Drag and drop CSV files. We auto-detect columns, types, and relationships.",
+            },
+            {
+              step: "2",
+              icon: "💬",
+              title: "Ask in Plain English",
+              desc: '"Compare salary vs training cost by department" — just type naturally.',
+            },
+            {
+              step: "3",
+              icon: "🤖",
+              title: "Watch 3 Agents Collaborate",
+              desc: "Schema Agent finds connections. SQL Agent builds queries. Validator checks results.",
+            },
+          ].map((item) => (
+            <motion.div
+              key={item.step}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: Number(item.step) * 0.15 }}
+              className="bg-[#111d33]/70 border border-[#1e3a5f]/50 rounded-xl p-8 text-center"
+            >
+              <div className="text-4xl mb-4">{item.icon}</div>
+              <div className="text-sm text-blue-400 mb-2">
+                Step {item.step}
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
+              <p className="text-blue-200/60">{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Agent Architecture */}
+      <section className="max-w-5xl mx-auto py-20 px-6 relative z-10">
+        <h2 className="text-3xl font-bold text-center mb-4">
+          3 AI Agents That Talk To Each Other
+        </h2>
+        <p className="text-blue-200/60 text-center mb-16 max-w-2xl mx-auto">
+          Not just one AI. Three specialized agents that collaborate, retry, and
+          self-correct — live, in front of your eyes.
+        </p>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+          {[
+            {
+              icon: "🔍",
+              name: "Schema Agent",
+              desc: "Discovers relationships",
+              model: "Nano 8B",
+            },
+            {
+              icon: "🔨",
+              name: "SQL Agent",
+              desc: "Builds the query",
+              model: "Ultra 253B",
+            },
+            {
+              icon: "✓",
+              name: "Validator",
+              desc: "Ensures accuracy",
+              model: "Deterministic",
+            },
+          ].map((agent, i) => (
+            <div key={agent.name} className="flex items-center gap-6">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.2 }}
+                className="bg-[#111d33] border border-[#1e3a5f] rounded-xl p-6 text-center w-48"
+              >
+                <div className="text-3xl mb-2">{agent.icon}</div>
+                <h3 className="font-semibold mb-1">{agent.name}</h3>
+                <p className="text-sm text-blue-200/60 mb-2">{agent.desc}</p>
+                <span className="text-xs px-2 py-1 bg-[#1e3a5f] rounded-full text-blue-200">
+                  {agent.model}
+                </span>
+              </motion.div>
+              {i < 2 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.2 + 0.3 }}
+                  className="text-2xl text-blue-400/40 hidden md:block"
+                >
+                  →
+                </motion.div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Comparison */}
+      <section className="max-w-4xl mx-auto py-20 px-6 text-center relative z-10">
+        <h2 className="text-3xl font-bold mb-12">Why CrossQuery?</h2>
+        <div className="grid md:grid-cols-2 gap-4 text-left">
+          {[
+            { tool: "Tableau", pain: "Drag-and-drop join configuration" },
+            { tool: "Power BI", pain: "Composite model setup required" },
+            { tool: "Looker", pain: "Write LookML to define relationships" },
+            { tool: "ChatGPT", pain: "Unreliable pandas code, no database" },
+          ].map((item) => (
+            <div
+              key={item.tool}
+              className="flex items-center gap-3 bg-[#111d33]/50 border border-[#1e3a5f]/30 rounded-lg p-4"
+            >
+              <span className="text-red-400">✕</span>
+              <span>
+                <strong>{item.tool}:</strong>{" "}
+                <span className="text-blue-200/60">{item.pain}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 bg-blue-500/10 border border-blue-500/20 rounded-lg p-6">
+          <span className="text-blue-400 text-lg">
+            ✓ <strong>CrossQuery:</strong> One sentence. That&apos;s it.
+          </span>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-[#1e3a5f]/30 py-8 text-center text-blue-200/40 text-sm relative z-10">
+        <p>
+          Built with Next.js 15 · NVIDIA NIM · Neon PostgreSQL · Drizzle ORM
+        </p>
+        <p className="mt-2">
+          Created by{" "}
+          <a
+            href="https://lubot.ai"
+            className="text-blue-400 hover:underline"
+            target="_blank"
+          >
+            Lubo Bali
+          </a>{" "}
+          — creator of{" "}
+          <a
+            href="https://lubot.ai"
+            className="text-blue-400 hover:underline"
+            target="_blank"
+          >
+            LuBot.ai
+          </a>
+        </p>
       </footer>
     </div>
   );
