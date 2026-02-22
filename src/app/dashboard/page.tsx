@@ -330,45 +330,45 @@ export default function Dashboard() {
 
         {/* Agent Cards — ALWAYS visible, pinned at top */}
         {hasMessages && (
-          <div className="px-6 py-4 border-b border-[#1e3a5f]/20 relative z-10 bg-[#0c1929]/95 backdrop-blur-sm">
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+          <div className="px-3 py-2 md:px-6 md:py-4 border-b border-[#1e3a5f]/20 relative z-10 bg-[#0c1929]/95 backdrop-blur-sm">
+            <div className="flex flex-row items-center justify-center gap-1.5 md:gap-4">
               {(["schema", "sql", "validator"] as const).map((agent, i) => (
-                <div key={agent} className="flex flex-col md:flex-row items-center gap-4">
+                <div key={agent} className="flex flex-row items-center gap-1.5 md:gap-4">
                   <motion.div
                     variants={agentVariants}
                     animate={agents[agent].status}
-                    className={`bg-[#111d33] border-2 ${agentColors[agents[agent].status]} rounded-xl p-4 text-center w-44 transition-colors`}
+                    className={`bg-[#111d33] border-2 ${agentColors[agents[agent].status]} rounded-lg md:rounded-xl p-2 md:p-4 text-center w-[100px] md:w-44 transition-colors`}
                   >
-                    <div className="text-2xl mb-1">
+                    <div className="text-base md:text-2xl mb-0.5 md:mb-1">
                       {agent === "schema"
                         ? "🔍"
                         : agent === "sql"
                           ? "🔨"
                           : "✓"}
                     </div>
-                    <h3 className="font-semibold text-sm mb-1">
+                    <h3 className="font-semibold text-[10px] md:text-sm mb-0.5 md:mb-1">
                       {agent === "schema"
-                        ? "Schema Agent"
+                        ? "Schema"
                         : agent === "sql"
-                          ? "SQL Agent"
-                          : "Validator Agent"}
+                          ? "SQL"
+                          : "Validator"}
                     </h3>
-                    <p className="text-xs text-blue-200/60 h-8 overflow-hidden">
+                    <p className="text-[9px] md:text-xs text-blue-200/60 h-4 md:h-8 overflow-hidden leading-tight">
                       {agents[agent].message || (
                         <span className="text-blue-200/30">Waiting...</span>
                       )}
                     </p>
                     {agents[agent].status === "done" && (
-                      <span className="text-green-400 text-xs">Done</span>
+                      <span className="text-green-400 text-[9px] md:text-xs">Done</span>
                     )}
                     {agents[agent].status === "retry" && (
-                      <span className="text-orange-400 text-xs">
+                      <span className="text-orange-400 text-[9px] md:text-xs">
                         Retrying...
                       </span>
                     )}
                   </motion.div>
                   {i < 2 && (
-                    <span className="text-blue-400/40 text-xl">→</span>
+                    <span className="text-blue-400/40 text-sm md:text-xl">→</span>
                   )}
                 </div>
               ))}
