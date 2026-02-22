@@ -12,6 +12,7 @@ import { getSessionId } from "@/lib/session";
 import SchemaMap from "@/components/SchemaMap";
 import { detectJoins } from "@/lib/join-detector";
 import { generateSuggestions } from "@/lib/suggestion-engine";
+import DataPreview from "@/components/DataPreview";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_ROWS = 10_000;
@@ -63,6 +64,13 @@ export default function Dashboard() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
   const [showSchemaMap, setShowSchemaMap] = useState(false);
+  const [previewData, setPreviewData] = useState<{
+    fileName: string;
+    columns: string[];
+    columnTypes: Record<string, string>;
+    rowCount: number;
+    rows: Record<string, unknown>[];
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -100,6 +108,19 @@ export default function Dashboard() {
       next.delete(fileId);
       return next;
     });
+  }, []);
+
+  const openPreview = useCallback(async (fileId: string) => {
+    try {
+      const res = await fetch(`/api/files/${fileId}/preview`, {
+        headers: { "x-session-id": getSessionId() },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setPreviewData(data);
+    } catch (err) {
+      console.error("Preview fetch error:", err);
+    }
   }, []);
 
   const isAgentActive =
@@ -274,24 +295,35 @@ export default function Dashboard() {
               return (
                 <div
                   key={file.id}
-                  className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition cursor-pointer"
-                  onClick={() => canSelect && toggleFileSelection(file.id)}
+                  className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition"
                 >
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={isSelected}
                       readOnly
-                      className="accent-blue-500 w-3.5 h-3.5 cursor-pointer"
+                      onClick={() => canSelect && toggleFileSelection(file.id)}
+                      className="accent-blue-500 w-3.5 h-3.5 cursor-pointer shrink-0"
                     />
                     <span className="text-green-400 text-xs">●</span>
-                    <span className="text-sm font-medium truncate">
+                    <span
+                      className="text-sm font-medium truncate cursor-pointer hover:text-blue-400 transition"
+                      onClick={() => openPreview(file.id)}
+                    >
                       {file.fileName}
                     </span>
                   </div>
-                  <p className="text-xs text-blue-200/40 mt-1 pl-8">
-                    {file.columns.length} cols · {file.rowCount} rows
-                  </p>
+                  <div className="flex items-center justify-between mt-1 pl-8">
+                    <p className="text-xs text-blue-200/40">
+                      {file.columns.length} cols · {file.rowCount} rows
+                    </p>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openPreview(file.id); }}
+                      className="text-[10px] text-blue-400/50 hover:text-blue-300 transition"
+                    >
+                      Preview
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -312,24 +344,35 @@ export default function Dashboard() {
               return (
                 <div
                   key={file.id}
-                  className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition cursor-pointer"
-                  onClick={() => canSelect && toggleFileSelection(file.id)}
+                  className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition"
                 >
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={isSelected}
                       readOnly
-                      className="accent-blue-500 w-3.5 h-3.5 cursor-pointer"
+                      onClick={() => canSelect && toggleFileSelection(file.id)}
+                      className="accent-blue-500 w-3.5 h-3.5 cursor-pointer shrink-0"
                     />
                     <span className="text-blue-400 text-xs">●</span>
-                    <span className="text-sm font-medium truncate">
+                    <span
+                      className="text-sm font-medium truncate cursor-pointer hover:text-blue-400 transition"
+                      onClick={() => openPreview(file.id)}
+                    >
                       {file.fileName}
                     </span>
                   </div>
-                  <p className="text-xs text-blue-200/40 mt-1 pl-8">
-                    {file.columns.length} cols · {file.rowCount} rows
-                  </p>
+                  <div className="flex items-center justify-between mt-1 pl-8">
+                    <p className="text-xs text-blue-200/40">
+                      {file.columns.length} cols · {file.rowCount} rows
+                    </p>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openPreview(file.id); }}
+                      className="text-[10px] text-blue-400/50 hover:text-blue-300 transition"
+                    >
+                      Preview
+                    </button>
+                  </div>
                 </div>
               );
             })
@@ -738,6 +781,18 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Data Preview Modal */}
+      {previewData && (
+        <DataPreview
+          fileName={previewData.fileName}
+          columns={previewData.columns}
+          columnTypes={previewData.columnTypes}
+          rowCount={previewData.rowCount}
+          rows={previewData.rows}
+          onClose={() => setPreviewData(null)}
+        />
       )}
     </div>
   );
