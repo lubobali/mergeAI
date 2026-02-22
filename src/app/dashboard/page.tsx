@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useAgentStream } from "@/hooks/use-agent-stream";
 import type { AgentStatus } from "@/hooks/use-agent-stream";
 import Papa from "papaparse";
 import PlotlyChart from "@/components/PlotlyChart";
 import { getSessionId } from "@/lib/session";
+import SchemaMap from "@/components/SchemaMap";
+import { detectJoins } from "@/lib/join-detector";
+import { generateSuggestions } from "@/lib/suggestion-engine";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_ROWS = 10_000;
@@ -58,11 +61,46 @@ export default function Dashboard() {
   const [expandedSql, setExpandedSql] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
+  const [showSchemaMap, setShowSchemaMap] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { agents, messages, isStreaming, runQuery, clearChat } =
     useAgentStream();
+
+  // Schema Map: filter to selected files, detect joins between them
+  const selectedFiles = useMemo(
+    () => files.filter((f) => selectedFileIds.has(f.id)),
+    [files, selectedFileIds]
+  );
+  const joins = useMemo(() => detectJoins(selectedFiles), [selectedFiles]);
+  const suggestions = useMemo(
+    () => generateSuggestions(selectedFiles, joins),
+    [selectedFiles, joins]
+  );
+
+  const MAX_MAP_FILES = 4;
+
+  const toggleFileSelection = useCallback((fileId: string) => {
+    setSelectedFileIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(fileId)) {
+        next.delete(fileId);
+      } else if (next.size < MAX_MAP_FILES) {
+        next.add(fileId);
+      }
+      return next;
+    });
+  }, []);
+
+  const removeFileFromMap = useCallback((fileId: string) => {
+    setSelectedFileIds((prev) => {
+      const next = new Set(prev);
+      next.delete(fileId);
+      return next;
+    });
+  }, []);
 
   const isAgentActive =
     isStreaming ||
@@ -230,22 +268,33 @@ export default function Dashboard() {
         {demoFiles.length > 0 && (
           <div className="mb-6">
             <p className="text-xs text-blue-200/40 mb-2">Demo Files</p>
-            {demoFiles.map((file) => (
-              <div
-                key={file.id}
-                className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-green-400 text-xs">●</span>
-                  <span className="text-sm font-medium truncate">
-                    {file.fileName}
-                  </span>
+            {demoFiles.map((file) => {
+              const isSelected = selectedFileIds.has(file.id);
+              const canSelect = isSelected || selectedFileIds.size < MAX_MAP_FILES;
+              return (
+                <div
+                  key={file.id}
+                  className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition cursor-pointer"
+                  onClick={() => canSelect && toggleFileSelection(file.id)}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      readOnly
+                      className="accent-blue-500 w-3.5 h-3.5 cursor-pointer"
+                    />
+                    <span className="text-green-400 text-xs">●</span>
+                    <span className="text-sm font-medium truncate">
+                      {file.fileName}
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-200/40 mt-1 pl-8">
+                    {file.columns.length} cols · {file.rowCount} rows
+                  </p>
                 </div>
-                <p className="text-xs text-blue-200/40 mt-1 pl-4">
-                  {file.columns.length} cols · {file.rowCount} rows
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -257,24 +306,41 @@ export default function Dashboard() {
               None uploaded yet
             </p>
           ) : (
-            userFiles.map((file) => (
-              <div
-                key={file.id}
-                className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-blue-400 text-xs">●</span>
-                  <span className="text-sm font-medium truncate">
-                    {file.fileName}
-                  </span>
+            userFiles.map((file) => {
+              const isSelected = selectedFileIds.has(file.id);
+              const canSelect = isSelected || selectedFileIds.size < MAX_MAP_FILES;
+              return (
+                <div
+                  key={file.id}
+                  className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition cursor-pointer"
+                  onClick={() => canSelect && toggleFileSelection(file.id)}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      readOnly
+                      className="accent-blue-500 w-3.5 h-3.5 cursor-pointer"
+                    />
+                    <span className="text-blue-400 text-xs">●</span>
+                    <span className="text-sm font-medium truncate">
+                      {file.fileName}
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-200/40 mt-1 pl-8">
+                    {file.columns.length} cols · {file.rowCount} rows
+                  </p>
                 </div>
-                <p className="text-xs text-blue-200/40 mt-1 pl-4">
-                  {file.columns.length} cols · {file.rowCount} rows
-                </p>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
+        {/* Selection hint */}
+        {selectedFileIds.size > 0 && (
+          <p className="text-[10px] text-blue-200/30 mb-2 px-1">
+            {selectedFileIds.size}/{MAX_MAP_FILES} files selected for Schema Map
+          </p>
+        )}
 
         {/* Upload Button */}
         <input
@@ -373,6 +439,57 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Schema Map — toggle bar always visible when files selected */}
+        {selectedFileIds.size > 0 && (
+          <div className="border-b border-[#1e3a5f]/20 relative z-10 bg-[#0c1929]/95 backdrop-blur-sm">
+            <div className="flex items-center justify-between px-4 py-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-blue-300">Schema Map</span>
+                <span className="text-xs text-blue-200/40">
+                  {selectedFiles.length} file{selectedFiles.length !== 1 ? "s" : ""}{joins.length > 0 ? ` · ${joins.length} connection${joins.length !== 1 ? "s" : ""}` : ""}
+                </span>
+              </div>
+              <button
+                onClick={() => setShowSchemaMap(!showSchemaMap)}
+                className="text-xs text-blue-300/60 hover:text-blue-300 transition"
+              >
+                {showSchemaMap ? "Hide" : "Show"}
+              </button>
+            </div>
+            {showSchemaMap && (
+              <div className="w-full" style={{ height: "45vh" }}>
+                <SchemaMap
+                  files={selectedFiles}
+                  joins={joins}
+                  onRemoveFile={removeFileFromMap}
+                />
+              </div>
+            )}
+            {/* Smart query suggestions based on selected files */}
+            {suggestions.length > 0 && (
+              <div className="px-4 py-2.5 border-t border-[#1e3a5f]/10">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-blue-200/40 shrink-0">Try:</span>
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.text}
+                      onClick={() => handleSubmit(s.text)}
+                      disabled={isAgentActive}
+                      className={`px-3 py-1.5 rounded-full text-xs border transition truncate max-w-[300px] ${
+                        s.type === "cross"
+                          ? "border-green-500/30 text-green-400/80 hover:border-green-500 hover:text-green-300 bg-green-500/5"
+                          : "border-[#1e3a5f] text-blue-200/60 hover:border-blue-500 hover:text-blue-300"
+                      } disabled:opacity-30`}
+                    >
+                      {s.type === "cross" ? "⚡ " : ""}{s.text}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
