@@ -25,7 +25,8 @@ const BLOCKED_KEYWORDS = [
 ];
 
 function validateSql(query: string): void {
-  const trimmed = query.trim();
+  // Strip trailing semicolon (LLMs often add one) — safe as single statement
+  const trimmed = query.trim().replace(/;\s*$/, "");
   const upper = trimmed.toUpperCase();
 
   // Must start with SELECT or WITH (CTEs)
@@ -33,7 +34,7 @@ function validateSql(query: string): void {
     throw new Error("Only SELECT queries are allowed");
   }
 
-  // Block semicolons — prevent multi-statement injection
+  // Block semicolons in the middle — prevent multi-statement injection
   if (trimmed.includes(";")) {
     throw new Error("Multi-statement queries are not allowed");
   }
@@ -59,11 +60,12 @@ function enforceLimitCap(query: string, maxRows: number = 200): string {
 export async function executeRawSql(
   query: string
 ): Promise<{ columns: string[]; rows: Record<string, unknown>[] }> {
-  // Validate before execution
-  validateSql(query);
+  // Strip trailing semicolon + validate
+  const cleaned = query.trim().replace(/;\s*$/, "");
+  validateSql(cleaned);
 
   // Enforce row limit cap
-  const safeQuery = enforceLimitCap(query);
+  const safeQuery = enforceLimitCap(cleaned);
 
   // Execute with JS-side timeout (10s max)
   // Neon HTTP driver is stateless — SET statement_timeout doesn't persist across requests.
