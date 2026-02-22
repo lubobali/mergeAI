@@ -126,6 +126,7 @@ AG-UI Protocol event naming: `agent_start`, `agent_complete`, `round_retry`, `qu
 
 | Layer | Tech | Why |
 |-------|------|-----|
+| Vibe Coding | AdaL CLI | AI-assisted development, hackathon workflow |
 | Framework | Next.js 15 (App Router) | React 19, server components, API routes |
 | AI Models | NVIDIA NIM API | Nemotron 253B + Nano 8B via OpenAI-compatible SDK |
 | Database | Neon PostgreSQL | Serverless HTTP mode, zero connection overhead |
@@ -134,7 +135,6 @@ AG-UI Protocol event naming: `agent_start`, `agent_complete`, `round_retry`, `qu
 | Animation | Framer Motion | Agent card state transitions |
 | Auth | Clerk | Sign-up/sign-in in 10 minutes, free tier |
 | CSV Parsing | Papa Parse | Client-side, fast, handles any format |
-| Vibe Coding | AdaL CLI | AI-assisted development, hackathon workflow |
 | Deploy | Vercel | Auto-deploy from GitHub |
 
 ---
