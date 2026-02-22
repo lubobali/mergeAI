@@ -12,7 +12,7 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="flex items-center justify-between px-8 py-5 max-w-7xl mx-auto relative z-10">
         <div className="text-2xl font-bold tracking-tight">
-          <span className="text-blue-400">Cross</span>Query
+          <span className="text-blue-400">Merge</span>AI
         </div>
         <div className="flex gap-4">
           <SignedOut>
@@ -67,7 +67,7 @@ export default function LandingPage() {
               href="/sign-up"
               className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg text-lg font-medium transition"
             >
-              Try CrossQuery Free →
+              Try MergeAI Free →
             </Link>
             <a
               href="#how-it-works"
@@ -185,7 +185,7 @@ export default function LandingPage() {
 
       {/* Comparison */}
       <section className="max-w-4xl mx-auto py-20 px-6 text-center relative z-10">
-        <h2 className="text-3xl font-bold mb-12">Why CrossQuery?</h2>
+        <h2 className="text-3xl font-bold mb-12">Why MergeAI?</h2>
         <div className="grid md:grid-cols-2 gap-4 text-left">
           {[
             { tool: "Tableau", pain: "Drag-and-drop join configuration" },
@@ -207,7 +207,7 @@ export default function LandingPage() {
         </div>
         <div className="mt-8 bg-blue-500/10 border border-blue-500/20 rounded-lg p-6">
           <span className="text-blue-400 text-lg">
-            ✓ <strong>CrossQuery:</strong> One sentence. That&apos;s it.
+            ✓ <strong>MergeAI:</strong> One sentence. That&apos;s it.
           </span>
         </div>
       </section>

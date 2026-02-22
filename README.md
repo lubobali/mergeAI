@@ -134,6 +134,7 @@ AG-UI Protocol event naming: `agent_start`, `agent_complete`, `round_retry`, `qu
 | Animation | Framer Motion | Agent card state transitions |
 | Auth | Clerk | Sign-up/sign-in in 10 minutes, free tier |
 | CSV Parsing | Papa Parse | Client-side, fast, handles any format |
+| Vibe Coding | AdaL CLI | AI-assisted development, hackathon workflow |
 | Deploy | Vercel | Auto-deploy from GitHub |
 
 ---

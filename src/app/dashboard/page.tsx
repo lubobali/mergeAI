@@ -253,7 +253,7 @@ export default function Dashboard() {
         {/* Top Nav */}
         <header className="flex items-center justify-between px-6 py-3 border-b border-[#1e3a5f]/30 relative z-10">
           <h1 className="text-lg font-bold">
-            <span className="text-blue-400">Cross</span>Query
+            <span className="text-blue-400">Merge</span>AI
           </h1>
           <div className="flex items-center gap-4">
             <button
@@ -272,7 +272,7 @@ export default function Dashboard() {
             /* Empty state — show example queries */
             <div className="max-w-2xl mx-auto text-center pt-16">
               <h2 className="text-3xl font-bold mb-2">
-                <span className="text-blue-400">Cross</span>Query
+                <span className="text-blue-400">Merge</span>AI
               </h2>
               <p className="text-blue-200/60 mb-8">
                 Your AI Data Analyst — ask anything about your data

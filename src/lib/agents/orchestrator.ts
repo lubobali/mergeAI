@@ -27,9 +27,10 @@ export async function runAgentPipeline(
     const analysis = await runSchemaAgent(question, schemas, feedback);
     console.log("🔍 Schema Agent analysis:", JSON.stringify(analysis, null, 2));
 
-    const schemaMsg = analysis.joinKey
-      ? `Found join: ${analysis.joinKey.fileA.column} ↔ ${analysis.joinKey.fileB.column} (${Math.round(analysis.joinKey.confidence * 100)}% confidence)`
-      : `Single file query — no join needed`;
+    const jk = analysis.joinKey;
+    const schemaMsg = jk?.fileA?.column && jk?.fileB?.column
+      ? `Found join: ${jk.fileA.column} ↔ ${jk.fileB.column} (${Math.round((jk.confidence || 0) * 100)}% confidence)`
+      : `Analyzing ${schemas.length} files — ${schemas.map(s => s.fileName).join(", ")}`;
 
     onEvent({
       type: "agent_complete",

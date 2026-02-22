@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CrossQuery — Your AI Data Analyst",
+  title: "MergeAI — Your AI Data Analyst",
   description:
     "Upload spreadsheets, ask anything in plain English. 3 AI agents discover how your data connects and answer your questions.",
 };
