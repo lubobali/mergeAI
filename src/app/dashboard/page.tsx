@@ -178,8 +178,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#0c1929] text-white flex">
-      {/* File Sidebar */}
-      <aside className="w-64 bg-[#091320] border-r border-[#1e3a5f]/30 p-4 flex flex-col">
+      {/* File Sidebar — hidden on mobile */}
+      <aside className="hidden md:flex w-64 bg-[#091320] border-r border-[#1e3a5f]/30 p-4 flex-col">
         <h2 className="text-sm font-semibold text-blue-200/60 uppercase tracking-wider mb-4">
           Your Data
         </h2>
@@ -317,9 +317,9 @@ export default function Dashboard() {
               )}
 
               {/* Agent Cards */}
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-4">
                 {(["schema", "sql", "validator"] as const).map((agent, i) => (
-                  <div key={agent} className="flex items-center gap-4">
+                  <div key={agent} className="flex flex-col md:flex-row items-center gap-4">
                     <motion.div
                       variants={agentVariants}
                       animate={agents[agent].status}
