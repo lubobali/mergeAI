@@ -14,7 +14,13 @@
 
 Most analytics tools make you drag and drop, write formulas, or learn SQL. MergeAI doesn't. You upload your CSV files, type a question like *"which department spends the most on training?"*, and three AI agents collaborate in real-time to find the answer. No setup. No mapping. No SQL.
 
-<!-- Screenshots will be added after deployment -->
+<p align="center">
+  <img src="screenshots/HomePage.png" alt="MergeAI Landing Page" width="800" />
+</p>
+
+<p align="center">
+  <img src="screenshots/ChatPage.png" alt="MergeAI Dashboard — 3 agents collaborating" width="800" />
+</p>
 
 ---
 
