@@ -3,7 +3,7 @@
 <p align="center"><strong>Upload spreadsheets. Ask in plain English. Watch 3 AI agents find the answer — live.</strong></p>
 
 <p align="center">
-  <a href="#"><strong>Try Live</strong></a> &nbsp;|&nbsp;
+  <a href="https://merge-ai-omega.vercel.app/"><strong>Try Live</strong></a> &nbsp;|&nbsp;
   <a href="#how-it-works">How It Works</a> &nbsp;|&nbsp;
   <a href="#the-tech">Tech Stack</a>
 </p>
