@@ -164,11 +164,13 @@ export default function Dashboard() {
       if (Number.isInteger(num)) return num.toLocaleString();
       return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
+    // Round long decimals inside text strings (e.g. "Sales: 3115.114292271627" → "Sales: 3115.11")
+    const cleaned = s.replace(/(\d+\.\d{3,})/g, (match) => Number(match).toFixed(2));
     // Title case text values (handles LOWER() from SQL)
-    if (s.length > 1 && s === s.toLowerCase()) {
-      return s.replace(/\b\w/g, (c) => c.toUpperCase());
+    if (cleaned.length > 1 && cleaned === cleaned.toLowerCase()) {
+      return cleaned.replace(/\b\w/g, (c) => c.toUpperCase());
     }
-    return s;
+    return cleaned;
   };
 
   const demoFiles = files.filter((f) => f.isDemo);
@@ -335,7 +337,7 @@ export default function Dashboard() {
                           ? "Schema Agent"
                           : agent === "sql"
                             ? "SQL Agent"
-                            : "Validator"}
+                            : "Validator Agent"}
                       </h3>
                       <p className="text-xs text-blue-200/60 h-8 overflow-hidden">
                         {agents[agent].message || (
