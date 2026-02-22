@@ -130,6 +130,11 @@ export default function Dashboard() {
               rows,
             }),
           });
+          if (!res.ok) {
+            console.error("Upload failed:", res.status);
+            setUploading(false);
+            return;
+          }
           const newFile = await res.json();
           setFiles((prev) => [...prev, newFile]);
         } catch (err) {
@@ -227,32 +232,21 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Upload Button — only for logged-in users */}
-        {isLoggedIn ? (
-          <>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={handleFileUpload}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="mt-auto w-full py-2 px-4 border border-dashed border-[#1e3a5f] rounded-lg text-sm text-blue-200/60 hover:border-blue-500 hover:text-blue-400 transition disabled:opacity-50"
-            >
-              {uploading ? "Uploading..." : "+ Upload CSV"}
-            </button>
-          </>
-        ) : (
-          <Link
-            href="/sign-up"
-            className="mt-auto w-full py-2 px-4 bg-blue-600/20 border border-blue-500/30 rounded-lg text-sm text-blue-400 text-center hover:bg-blue-600/30 transition"
-          >
-            Sign up to upload your own files
-          </Link>
-        )}
+        {/* Upload Button */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="mt-auto w-full py-2 px-4 border border-dashed border-[#1e3a5f] rounded-lg text-sm text-blue-200/60 hover:border-blue-500 hover:text-blue-400 transition disabled:opacity-50"
+        >
+          {uploading ? "Uploading..." : "+ Upload CSV"}
+        </button>
       </aside>
 
       {/* Main Chat Area */}

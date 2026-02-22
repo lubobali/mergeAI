@@ -22,11 +22,6 @@ export async function POST(req: Request) {
       return Response.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Demo users cannot upload files
-    if (userId === "demo_user") {
-      return Response.json({ error: "Sign up to upload your own files" }, { status: 403 });
-    }
-
     console.log(`📤 Upload: ${fileName} (${rows.length} rows, ${columns.length} cols) for user ${userId}`);
 
     // Insert file record
