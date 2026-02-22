@@ -3,11 +3,18 @@ import { db } from "@/lib/db";
 import { uploadedFiles } from "@/drizzle/schema";
 import { eq, or } from "drizzle-orm";
 
+async function getAuthUserId(): Promise<string> {
+  try {
+    const { userId } = await auth();
+    return userId || "demo_user";
+  } catch {
+    return "demo_user";
+  }
+}
+
 export async function GET() {
   try {
-    // Server-side auth — never trust client-provided userId
-    const { userId: clerkUserId } = await auth();
-    const userId = clerkUserId || "demo_user";
+    const userId = await getAuthUserId();
 
     const files = await db
       .select()

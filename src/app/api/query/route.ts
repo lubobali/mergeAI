@@ -7,11 +7,17 @@ import type { FileSchema, AgentEvent } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
-  // Server-side auth — never trust client-provided userId
-  const { userId: clerkUserId } = await auth();
-  const userId = clerkUserId || "demo_user";
+async function getAuthUserId(): Promise<string> {
+  try {
+    const { userId } = await auth();
+    return userId || "demo_user";
+  } catch {
+    return "demo_user";
+  }
+}
 
+export async function POST(req: Request) {
+  const userId = await getAuthUserId();
   const { question } = await req.json();
 
   if (!question) {

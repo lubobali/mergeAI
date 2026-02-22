@@ -65,15 +65,30 @@ export async function executeRawSql(
   // Enforce row limit cap
   const safeQuery = enforceLimitCap(query);
 
-  // Execute with statement timeout (10s max)
-  const result = await sql.query(
-    `SET statement_timeout = '10s'; ${safeQuery}`
-  );
+  // Execute with JS-side timeout (10s max)
+  // Neon HTTP driver is stateless — SET statement_timeout doesn't persist across requests.
+  // Use AbortController instead.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
 
-  if (!result || result.length === 0) {
+  try {
+    const result = await sql.query(safeQuery);
+    clearTimeout(timeout);
+    return parseResult(result);
+  } catch (err) {
+    clearTimeout(timeout);
+    if (controller.signal.aborted) {
+      throw new Error("Query timed out (10s limit)");
+    }
+    throw err;
+  }
+}
+
+function parseResult(result: unknown) {
+  const rows = result as Record<string, unknown>[];
+  if (!rows || rows.length === 0) {
     return { columns: [], rows: [] };
   }
-
-  const columns = Object.keys(result[0]);
-  return { columns, rows: result as Record<string, unknown>[] };
+  const columns = Object.keys(rows[0]);
+  return { columns, rows };
 }

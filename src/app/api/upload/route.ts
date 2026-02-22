@@ -2,11 +2,18 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { uploadedFiles, uploadedRows } from "@/drizzle/schema";
 
+async function getAuthUserId(): Promise<string> {
+  try {
+    const { userId } = await auth();
+    return userId || "demo_user";
+  } catch {
+    return "demo_user";
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    // Server-side auth — never trust client-provided userId
-    const { userId: clerkUserId } = await auth();
-    const userId = clerkUserId || "demo_user";
+    const userId = await getAuthUserId();
 
     const { fileName, columns, columnTypes, sampleValues, rows } =
       await req.json();
