@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { runAgentPipeline } from "@/lib/agents/orchestrator";
 import { db } from "@/lib/db";
 import { uploadedFiles } from "@/drizzle/schema";
@@ -7,10 +8,14 @@ import type { FileSchema, AgentEvent } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const { question, userId } = await req.json();
+  // Server-side auth — never trust client-provided userId
+  const { userId: clerkUserId } = await auth();
+  const userId = clerkUserId || "demo_user";
 
-  if (!question || !userId) {
-    return Response.json({ error: "Missing question or userId" }, { status: 400 });
+  const { question } = await req.json();
+
+  if (!question) {
+    return Response.json({ error: "Missing question" }, { status: 400 });
   }
 
   // Get all files for this user (their uploads + demo files)

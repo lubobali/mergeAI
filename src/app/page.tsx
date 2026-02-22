@@ -57,17 +57,26 @@ export default function LandingPage() {
               Watch AI Think.
             </span>
           </h1>
-          <p className="text-xl text-blue-100/90 max-w-2xl mx-auto mb-10">
+          <p className="text-xl text-blue-100/90 max-w-2xl mx-auto mb-4">
             Your AI data analyst. Upload spreadsheets, ask anything in plain
             English. 3 AI agents discover how your data connects — and show you
             exactly how they think.
           </p>
-          <div className="flex gap-4 justify-center">
+          <p className="text-sm text-blue-200/40 mb-10">
+            Joins across files automatically · Real PostgreSQL · SQL you can inspect
+          </p>
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link
-              href="/sign-up"
+              href="/dashboard"
               className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg text-lg font-medium transition"
             >
-              Try MergeAI Free →
+              Try with Sample Data →
+            </Link>
+            <Link
+              href="/sign-up"
+              className="px-8 py-3 border border-blue-500/40 hover:border-blue-400 rounded-lg text-lg text-blue-100/80 transition"
+            >
+              Sign Up Free
             </Link>
             <a
               href="#how-it-works"

@@ -1,6 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/settings(.*)"]);
+// /dashboard is public — demo users can access without login.
+// Only /settings requires authentication.
+const isProtectedRoute = createRouteMatcher(["/settings(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {

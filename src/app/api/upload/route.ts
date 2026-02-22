@@ -1,13 +1,23 @@
+import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { uploadedFiles, uploadedRows } from "@/drizzle/schema";
 
 export async function POST(req: Request) {
   try {
-    const { fileName, columns, columnTypes, sampleValues, rows, userId } =
+    // Server-side auth — never trust client-provided userId
+    const { userId: clerkUserId } = await auth();
+    const userId = clerkUserId || "demo_user";
+
+    const { fileName, columns, columnTypes, sampleValues, rows } =
       await req.json();
 
-    if (!fileName || !columns || !rows || !userId) {
+    if (!fileName || !columns || !rows) {
       return Response.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Demo users cannot upload files
+    if (userId === "demo_user") {
+      return Response.json({ error: "Sign up to upload your own files" }, { status: 403 });
     }
 
     console.log(`📤 Upload: ${fileName} (${rows.length} rows, ${columns.length} cols) for user ${userId}`);

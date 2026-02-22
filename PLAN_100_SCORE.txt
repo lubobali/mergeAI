@@ -1,0 +1,156 @@
+============================================================
+MERGEAI — PLAN TO REACH 100/100
+============================================================
+
+Current Score: 92/100
+Target: 100/100
+Points to recover: 8
+
+============================================================
+FIX 1: SERVER-SIDE AUTH (+2 points: Route +1, Tech +1)
+============================================================
+Grader: "Derive userId server-side via Clerk auth()"
+
+FILES:
+  - src/app/api/query/route.ts
+  - src/app/api/upload/route.ts
+  - src/app/api/files/route.ts
+
+CHANGES:
+  All 3 routes:
+    import { auth } from "@clerk/nextjs/server";
+    const { userId: clerkUserId } = await auth();
+    const userId = clerkUserId || "demo_user";
+
+  Remove userId from request body (query, upload)
+  Remove userId from query params (files)
+
+  demo_user fallback enables Fix 4 (demo mode)
+
+============================================================
+FIX 2: SQL SAFETY (+1 point: Tech +1)
+============================================================
+Grader: "SQL allowlist, reject INSERT/DELETE/DROP,
+         enforce LIMIT, statement timeout"
+
+FILE:
+  - src/lib/db.ts
+
+CHANGES:
+  Add validateSql() before execution:
+    - Must start with SELECT or WITH
+    - Block: INSERT, UPDATE, DELETE, DROP, ALTER,
+      TRUNCATE, CREATE, GRANT, REVOKE, COPY, EXECUTE
+    - Block semicolons (prevent multi-statement injection)
+    - If no LIMIT found, append LIMIT 200
+
+  Add statement timeout:
+    Prepend SET statement_timeout = '10s' to every query
+
+============================================================
+FIX 3: LANDING PAGE PROOF POINT (+1 point: Landing +1)
+============================================================
+Grader: "Add proof point under hero" + "Try with sample data CTA"
+
+FILE:
+  - src/app/page.tsx
+
+CHANGES:
+  After subtitle paragraph, add:
+    "Joins across files automatically · Real PostgreSQL ·
+     SQL you can inspect"
+
+  Add third CTA button:
+    "Try with Sample Data" → links to /dashboard
+    (Works without login thanks to Fix 4)
+
+============================================================
+FIX 4: DEMO MODE WITHOUT LOGIN (+3 points: Core +2, Polish +1)
+============================================================
+Grader: "I couldn't fully verify the flow live" +
+        "demo mode link that bypasses auth" +
+        "one-click demo"
+
+FILES:
+  - src/middleware.ts
+  - src/app/dashboard/page.tsx
+
+CHANGES:
+  middleware.ts:
+    Remove /dashboard from protected routes:
+    const isProtectedRoute = createRouteMatcher(["/settings(.*)"]);
+    Dashboard now accessible without login.
+
+  dashboard/page.tsx:
+    const userId = user?.id || "demo_user";
+    Demo users see demo files only.
+    Hide upload button when not logged in.
+    Show "Sign up to upload your own files" prompt instead.
+
+  API routes (already handled by Fix 1):
+    auth() returns null for demo users → userId = "demo_user"
+    demo_user sees only isDemo=true files
+
+============================================================
+FIX 5: GLOBAL LOADING STATE (+0 — completes Polish from Fix 4)
+============================================================
+Grader: "ensure loading/error states across the app"
+
+FILE:
+  - src/app/loading.tsx (NEW)
+
+CHANGES:
+  Create global loading spinner matching app theme.
+  Favicon already exists. Error states already in dashboard.
+  Loading indicator already in dashboard.
+  This is the missing piece — global Next.js loading state.
+
+============================================================
+IMPLEMENTATION ORDER
+============================================================
+
+Step 1: Fix 2 — SQL Safety (db.ts)                    ~5 min
+Step 2: Fix 1 — Server-side auth (3 API routes)       ~10 min
+Step 3: Fix 4 — Demo mode (middleware + dashboard)     ~10 min
+Step 4: Fix 3 — Landing page proof + CTA (page.tsx)    ~5 min
+Step 5: Fix 5 — Loading.tsx                            ~2 min
+Step 6: Test locally (npm run dev)                     ~5 min
+Step 7: Push to GitHub → Vercel auto-deploys           ~2 min
+Step 8: Rebuild submission zip + resubmit              ~5 min
+
+Total: ~45 minutes
+
+============================================================
+SCORE PROJECTION
+============================================================
+
+Category                  Before  After   Gained
+Landing Page Quality      24/25   25/25   +1 (proof point + demo CTA)
+Route Architecture        19/20   20/20   +1 (server-side auth)
+Core Functionality        22/25   25/25   +3 (demo mode + timeout + LIMIT)
+Technical Implementation  13/15   15/15   +2 (auth + SQL safety)
+Problem & Idea Clarity    10/10   10/10   +0 (already perfect)
+Polish & Completeness      4/5     5/5    +1 (loading + one-click demo)
+
+TOTAL:                    92/100  100/100  +8
+
+============================================================
+RESUBMISSION CHECKLIST
+============================================================
+[ ] All fixes implemented and tested locally
+[ ] Push to GitHub (git add . && git commit && git push)
+[ ] Verify Vercel auto-deploys successfully
+[ ] Test demo mode: visit /dashboard without login
+[ ] Rebuild mergeAI_submission.zip with updated src/
+[ ] Resubmit on DataExpert
+[ ] Reply to grader with:
+    - Demo link: https://merge-ai-omega.vercel.app/dashboard
+      (now works without login)
+    - Route paths: app/api/files/route.ts,
+      app/api/upload/route.ts, app/api/query/route.ts
+    - Security: server-side auth + SQL allowlist implemented
+    - Example queries:
+      "Compare average training cost by department"
+      "Which department has the longest training duration?"
+      "Show employee count by department"
+============================================================

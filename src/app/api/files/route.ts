@@ -1,15 +1,13 @@
+import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { uploadedFiles } from "@/drizzle/schema";
 import { eq, or } from "drizzle-orm";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId");
-
-    if (!userId) {
-      return Response.json({ error: "Missing userId" }, { status: 400 });
-    }
+    // Server-side auth — never trust client-provided userId
+    const { userId: clerkUserId } = await auth();
+    const userId = clerkUserId || "demo_user";
 
     const files = await db
       .select()

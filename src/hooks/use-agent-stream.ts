@@ -21,7 +21,7 @@ export function useAgentStream() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const runQuery = useCallback(async (question: string, userId: string) => {
+  const runQuery = useCallback(async (question: string) => {
     setAgents(INITIAL_STATE);
     setResult(null);
     setError(null);
@@ -31,7 +31,7 @@ export function useAgentStream() {
       const response = await fetch("/api/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, userId }),
+        body: JSON.stringify({ question }),
       });
 
       if (!response.ok) {

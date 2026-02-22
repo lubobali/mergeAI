@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
@@ -44,7 +45,7 @@ const agentColors: Record<AgentStatus, string> = {
 
 export default function Dashboard() {
   const { user } = useUser();
-  const userId = user?.id || "anonymous";
+  const isLoggedIn = !!user;
   const [query, setQuery] = useState("");
   const [activeQuestion, setActiveQuestion] = useState("");
   const [files, setFiles] = useState<FileInfo[]>([]);
@@ -63,14 +64,13 @@ export default function Dashboard() {
     agents.sql.status === "active" ||
     agents.validator.status === "active";
 
-  // Load files from API
+  // Load files from API (server derives userId from Clerk session)
   useEffect(() => {
-    if (userId === "anonymous") return;
-    fetch(`/api/files?userId=${userId}`)
+    fetch("/api/files")
       .then((r) => r.json())
       .then((data) => setFiles(data))
       .catch(console.error);
-  }, [userId]);
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function Dashboard() {
     setActiveQuestion(question);
     setQuery("");
     setShowSql(false);
-    runQuery(question, userId);
+    runQuery(question);
   };
 
   // CSV Upload handler
@@ -128,7 +128,6 @@ export default function Dashboard() {
               columnTypes,
               sampleValues,
               rows,
-              userId,
             }),
           });
           const newFile = await res.json();
@@ -228,21 +227,32 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Upload Button */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv"
-          className="hidden"
-          onChange={handleFileUpload}
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="mt-auto w-full py-2 px-4 border border-dashed border-[#1e3a5f] rounded-lg text-sm text-blue-200/60 hover:border-blue-500 hover:text-blue-400 transition disabled:opacity-50"
-        >
-          {uploading ? "Uploading..." : "+ Upload CSV"}
-        </button>
+        {/* Upload Button — only for logged-in users */}
+        {isLoggedIn ? (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="mt-auto w-full py-2 px-4 border border-dashed border-[#1e3a5f] rounded-lg text-sm text-blue-200/60 hover:border-blue-500 hover:text-blue-400 transition disabled:opacity-50"
+            >
+              {uploading ? "Uploading..." : "+ Upload CSV"}
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/sign-up"
+            className="mt-auto w-full py-2 px-4 bg-blue-600/20 border border-blue-500/30 rounded-lg text-sm text-blue-400 text-center hover:bg-blue-600/30 transition"
+          >
+            Sign up to upload your own files
+          </Link>
+        )}
       </aside>
 
       {/* Main Chat Area */}
@@ -262,7 +272,16 @@ export default function Dashboard() {
             >
               User Guide
             </button>
-            <UserButton afterSignOutUrl="/" />
+            {isLoggedIn ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
+              <Link
+                href="/sign-up"
+                className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 rounded-lg transition"
+              >
+                Sign Up
+              </Link>
+            )}
           </div>
         </header>
 
