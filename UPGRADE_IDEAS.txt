@@ -249,3 +249,39 @@ After upgrades, MergeAI will also have:
 
 This is not a hackathon demo. This is a product.
 ======================================================================
+
+ 1. Compare average training cost by department                                                                 
+  2. Show training outcome distribution breakdown                                                                
+  3. Show average training cost trend over time by month                                                         
+  4. What are the top 5 most expensive training programs?                                                        
+  5. Show training cost vs training duration scatter                                                             
+  6. Show average training cost by department and training type heatmap                                          
+                                                                                                                 
+  And for follow-up test, after #1 try:                                                                          
+  7. Now break that down by training type                                                                        
+                                                                        
+Single file:
+  1. Show average desired salary by education level
+  2. What is the recruitment status breakdown?
+  3. Compare average training cost by training outcome
+  4. Show employee count by department and gender
+
+  Cross-file (the wow factor):
+  5. Compare average training cost by department
+  6. Show average performance score by training outcome
+  7. What is the average training duration by employee pay zone?
+
+  Follow-up test (after #5):
+  8. Now break that down by training type
+
+
+
+
+
+
+
+1. Session helper (new file)
+  2. Dashboard — upload limits + sessionId header on all fetches
+  3. Upload route — server-side limits + use sessionId
+  4. Files route — use sessionId
+  5. Query route — use sessionId

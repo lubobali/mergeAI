@@ -3,18 +3,22 @@ import { db } from "@/lib/db";
 import { uploadedFiles } from "@/drizzle/schema";
 import { eq, or } from "drizzle-orm";
 
-async function getAuthUserId(): Promise<string> {
+async function resolveUserId(req: Request): Promise<string> {
+  // Priority: Clerk auth > x-session-id header > fallback
   try {
     const { userId } = await auth();
-    return userId || "demo_user";
+    if (userId) return userId;
   } catch {
-    return "demo_user";
+    // Clerk not available
   }
+  const sessionId = req.headers.get("x-session-id");
+  if (sessionId) return sessionId;
+  return `anon_${Date.now()}`;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const userId = await getAuthUserId();
+    const userId = await resolveUserId(req);
 
     const files = await db
       .select()

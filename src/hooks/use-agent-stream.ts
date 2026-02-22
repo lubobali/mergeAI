@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import type { AgentEvent, QueryResult, ChatMessage, ConversationContext } from "@/lib/types";
+import { getSessionId } from "@/lib/session";
 
 export type AgentStatus = "idle" | "active" | "done" | "retry" | "error";
 
@@ -57,7 +58,10 @@ export function useAgentStream() {
     try {
       const response = await fetch("/api/query", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-session-id": getSessionId(),
+        },
         body: JSON.stringify({ question, context }),
       });
 

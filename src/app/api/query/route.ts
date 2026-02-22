@@ -7,17 +7,20 @@ import type { FileSchema, AgentEvent } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-async function getAuthUserId(): Promise<string> {
+async function resolveUserId(req: Request): Promise<string> {
   try {
     const { userId } = await auth();
-    return userId || "demo_user";
+    if (userId) return userId;
   } catch {
-    return "demo_user";
+    // Clerk not available
   }
+  const sessionId = req.headers.get("x-session-id");
+  if (sessionId) return sessionId;
+  return `anon_${Date.now()}`;
 }
 
 export async function POST(req: Request) {
-  const userId = await getAuthUserId();
+  const userId = await resolveUserId(req);
   const { question, context } = await req.json();
 
   if (!question) {

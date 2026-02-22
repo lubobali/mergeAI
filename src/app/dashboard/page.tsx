@@ -8,6 +8,11 @@ import { useAgentStream } from "@/hooks/use-agent-stream";
 import type { AgentStatus } from "@/hooks/use-agent-stream";
 import Papa from "papaparse";
 import PlotlyChart from "@/components/PlotlyChart";
+import { getSessionId } from "@/lib/session";
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_ROWS = 10_000;
+const MAX_COLUMNS = 50;
 
 interface FileInfo {
   id: string;
@@ -52,6 +57,7 @@ export default function Dashboard() {
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [expandedSql, setExpandedSql] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -64,9 +70,11 @@ export default function Dashboard() {
     agents.sql.status === "active" ||
     agents.validator.status === "active";
 
-  // Load files from API (server derives userId from Clerk session)
+  // Load files from API — scoped by Clerk userId or anonymous sessionId
   useEffect(() => {
-    fetch("/api/files")
+    fetch("/api/files", {
+      headers: { "x-session-id": getSessionId() },
+    })
       .then((r) => r.json())
       .then((data) => setFiles(data))
       .catch(console.error);
@@ -93,10 +101,18 @@ export default function Dashboard() {
     });
   };
 
-  // CSV Upload handler
+  // CSV Upload handler — with size/row/column limits (LuBot pattern)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setUploadError(null);
+
+    // Gate 1: File size check (before parsing)
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is 10MB.`);
+      e.target.value = "";
+      return;
+    }
 
     setUploading(true);
     Papa.parse(file, {
@@ -110,6 +126,21 @@ export default function Dashboard() {
         }
 
         const columns = Object.keys(rows[0]);
+
+        // Gate 2: Row count check
+        if (rows.length > MAX_ROWS) {
+          setUploadError(`Too many rows (${rows.length.toLocaleString()}). Maximum is ${MAX_ROWS.toLocaleString()} rows.`);
+          setUploading(false);
+          return;
+        }
+
+        // Gate 3: Column count check
+        if (columns.length > MAX_COLUMNS) {
+          setUploadError(`Too many columns (${columns.length}). Maximum is ${MAX_COLUMNS} columns.`);
+          setUploading(false);
+          return;
+        }
+
         const columnTypes: Record<string, string> = {};
         const sampleValues: Record<string, string[]> = {};
 
@@ -128,7 +159,10 @@ export default function Dashboard() {
         try {
           const res = await fetch("/api/upload", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "x-session-id": getSessionId(),
+            },
             body: JSON.stringify({
               fileName: file.name,
               columns,
@@ -138,7 +172,8 @@ export default function Dashboard() {
             }),
           });
           if (!res.ok) {
-            console.error("Upload failed:", res.status);
+            const err = await res.json().catch(() => ({ error: "Upload failed" }));
+            setUploadError(err.error || "Upload failed");
             setUploading(false);
             return;
           }
@@ -146,6 +181,7 @@ export default function Dashboard() {
           setFiles((prev) => [...prev, newFile]);
         } catch (err) {
           console.error("Upload failed:", err);
+          setUploadError("Upload failed — please try again.");
         }
         setUploading(false);
       },
@@ -255,6 +291,11 @@ export default function Dashboard() {
         >
           {uploading ? "Uploading..." : "+ Upload CSV"}
         </button>
+        {uploadError && (
+          <div className="mt-2 p-2 text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg">
+            {uploadError}
+          </div>
+        )}
       </aside>
 
       {/* Main Chat Area */}
