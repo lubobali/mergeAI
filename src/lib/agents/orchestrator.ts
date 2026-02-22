@@ -78,7 +78,7 @@ export async function runAgentPipeline(
       const errMsg = err instanceof Error ? err.message : String(err);
 
       if (round < MAX_ROUNDS) {
-        feedback = `SQL ERROR: ${errMsg}. Fix the query.`;
+        feedback = `SQL ERROR: ${errMsg}. Remember: ALL columns are inside row_data JSONB. Use row_data->>'Column Name' — never bare column names.`;
         onEvent({
           type: "round_retry",
           agent: "validator",

@@ -17,8 +17,14 @@ export async function runSqlAgent(
 - file_id: UUID (identifies which file)
 - row_data: JSONB (each row as key-value pairs)
 
-Access values: row_data->>'Column_Name' (text)
-Cast numbers: (row_data->>'Column_Name')::NUMERIC
+CRITICAL: There are NO regular columns except file_id, user_id, and row_data. ALL data is inside row_data JSONB.
+You MUST use row_data->>'Column Name' for EVERY column. NEVER use bare column names.
+
+Examples:
+  row_data->>'Training Program Name'     (text)
+  (row_data->>'Training Cost')::NUMERIC  (number)
+  (row_data->>'Salary')::NUMERIC         (number)
+
 Use LOWER() for text JOINs. Use CTE for cross-file queries. GROUP BY dimensions. ORDER BY metric DESC. LIMIT 50.
 
 IMPORTANT: Determine the correct JOIN key yourself by looking at column names and sample values.
