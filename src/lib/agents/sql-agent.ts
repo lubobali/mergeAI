@@ -39,6 +39,12 @@ Examples:
   (row_data->>'Training Cost')::NUMERIC  (number)
   (row_data->>'Salary')::NUMERIC         (number)
 
+CRITICAL: ALL JSONB values are TEXT. You MUST cast to ::NUMERIC before ANY math operation (AVG, SUM, MIN, MAX, COUNT, comparisons like > < =).
+  WRONG: AVG(row_data->>'Salary')           — ERROR: function avg(text) does not exist
+  RIGHT: AVG((row_data->>'Salary')::NUMERIC) — correct
+  WRONG: row_data->>'Score' > 80             — ERROR: text vs integer comparison
+  RIGHT: (row_data->>'Score')::NUMERIC > 80  — correct
+
 Use LOWER() for text JOINs. Use CTE for cross-file queries. GROUP BY dimensions. ORDER BY metric DESC. LIMIT 50.
 
 IMPORTANT: Determine the correct JOIN key yourself by looking at column names and sample values.
