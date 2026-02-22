@@ -1,0 +1,881 @@
+CrossQuery — Vibe Coding Hackathon Plan
+========================================
+Date: Feb 21-23, 2026
+Deadline: Tuesday Feb 25, 11:59 PM PST
+Builder: Lubo
+Tool: AdaL CLI + Claude
+Deploy: Vercel
+Based on: /Users/lu/LuBot_hybrid/docs/Phase6_Cross_File_Queries_Plan.txt
+
+
+THE PRODUCT
+===========
+CrossQuery: Your AI Data Analyst. Upload spreadsheets, ask anything in
+plain English, watch 3 AI agents figure out the answer — live.
+
+Works with one file or many. When you ask across files, the agents
+auto-discover how your data connects. No setup, no SQL, no mapping.
+
+Tagline: "Upload. Ask. Watch AI Think."
+
+Why this wins:
+- Tableau needs drag-and-drop joins. Power BI needs composite models.
+  Looker needs LookML. ChatGPT uses unreliable in-memory pandas.
+- CrossQuery uses real PostgreSQL, real AI agents, and SHOWS you
+  exactly how they figure it out — live, in real-time.
+
+Product positioning:
+  NOT "cross-file SQL tool" (too technical, judges won't care)
+  YES "AI data analyst for your spreadsheets" (everyone understands)
+  The cross-file capability is the WOW MOMENT, not the product name.
+
+KEY DESIGN DECISIONS (Feb 21 — final)
+======================================
+1. DEMO DATA PRE-LOADED: 2 CSV file pairs already in Neon. Judges click
+   one example query chip → full agent workflow runs instantly. Zero friction.
+
+2. SAME CODE PATH: Demo files and user-uploaded files go through the
+   EXACT same agent pipeline. Upload = Papa Parse + Neon insert (30 min).
+   Agents don't care where data came from — they see schemas + JSONB rows.
+
+3. SINGLE PAGE APP: No separate landing page and dashboard. Hero section
+   scrolls into the live demo. Judges never leave the page.
+
+4. BUILD PRIORITY TIERS:
+   MUST HAVE (ship or fail):
+     - Agents work end-to-end (Schema → SQL → Validator → results)
+     - Pre-loaded demo data + clickable example queries
+     - Chat box for free-form questions
+     - Results table
+     - Deploy to Vercel
+
+   SHOULD HAVE (wins 1st place):
+     - SSE streaming + agent visualization (Framer Motion)
+     - "View SQL" toggle (show generated CTE)
+     - Natural language summary after results
+     - Upload your own CSV files
+
+   NICE TO HAVE (if time):
+     - Landing hero with animated agent diagram
+     - More demo datasets
+     - Query history
+     - Mobile responsive
+
+PRE-LOADED DEMO DATA
+=====================
+2 file pairs pre-seeded in Neon at app startup (or via seed script):
+
+Pair 1: employees.csv + training.csv
+  - employees: Name, Department, Salary, Hire_Date, Location
+  - training: Employee_Name, Dept, Program, Cost, Completion_Date
+  - Join key: Department ↔ Dept (fuzzy match)
+  - Source: /Users/lu/LuBot_hybrid/Test_files/Joins test/
+
+Pair 2: (create simple test data)
+  - products.csv: Product_ID, Product_Name, Category, Price
+  - orders.csv: Order_ID, Product_ID, Quantity, Customer, Order_Date
+  - Join key: Product_ID (exact match)
+
+Example query chips (clickable, pre-filled in chat):
+  "Compare average salary vs training cost by department"
+  "Which department spends the most on training?"
+  "Show total revenue by product category"
+  "What's the most ordered product?"
+
+User guide sidebar (always visible):
+  📁 Available Files:
+  • employees.csv (5 cols, 20 rows)
+  • training.csv (5 cols, 15 rows)
+  • products.csv (4 cols, 10 rows)
+  • orders.csv (5 cols, 25 rows)
+
+  💡 Try asking:
+  • "Compare salary vs training cost"
+  • "Total revenue by category"
+  • Or upload your own CSV files!
+
+
+TECH STACK (Latest 2026 — Research Updated Feb 21)
+===================================================
+| Layer          | Tech                           | Why                              |
+|----------------|--------------------------------|----------------------------------|
+| Framework      | Next.js 15 (App Router)        | Hackathon req. React 19 built-in |
+| UI             | Shadcn/ui + Tailwind CSS       | Feb 2026: Visual Project Builder |
+| Animations     | Framer Motion                  | Agent workflow step-by-step viz  |
+| Database       | Neon PostgreSQL (HTTP mode)    | Fastest for serverless — no conn |
+| ORM            | Drizzle ORM v0.45.1           | Lightest, best JSONB, SQL-first  |
+| AI Models      | NVIDIA NIM API                 | Nemotron 253B + Nano 8B          |
+| CSV Parsing    | Papa Parse                     | Client-side, fast, streaming     |
+| Auth           | Clerk (FREE tier)              | Pre-built signup/login, 10 min   |
+| Deploy         | Vercel (FREE tier)             | Hackathon req. Auto-deploy       |
+| Streaming      | SSE via ReadableStream         | Native, no extra deps needed     |
+| Chat UI        | Shadcn Chat + Prompt Kit       | AI-native chat components        |
+
+DROPPED from original plan:
+- Vercel AI SDK: Overkill — native SSE ReadableStream is simpler and faster
+- llama-3.2-nv-embedqa-1b-v2: No embedding needed for hackathon MVP.
+  Schema Agent discovers relationships via prompt, not embedding similarity.
+
+ADDED for "real SaaS" feel:
+- Clerk auth: Pre-built signup/login/profile. FREE tier = 10K users.
+  Gives us /sign-up, /sign-in, user profile — zero custom code.
+- Settings page: Theme toggle, user info (from Clerk), data management
+- User Guide: Modal with "How to use" + example queries + file descriptions
+
+RESEARCH FINDINGS (Feb 21, 2026)
+=================================
+
+Finding 1: Vercel AI SDK 6 — ToolLoopAgent + Multi-Agent
+  - New ToolLoopAgent class built for multi-agent orchestration
+  - 20M+ monthly downloads, streaming built-in
+  - BUT: overkill for our 3-agent pattern. Native SSE is simpler.
+  - Decision: SKIP. Use raw ReadableStream + SSE (fewer deps, more control)
+
+Finding 2: Next.js 16 exists (but hackathon says v14+)
+  - Cache Components, PPR improvements, React 19
+  - Decision: Stick with Next.js 15 (stable, well-documented)
+
+Finding 3: Shadcn/ui Feb 2026 Updates
+  - Visual Project Builder: npx shadcn create (real-time preview + theming)
+  - AI-specific components: Assistant UI, Prompt Kit, shadcn-chatbot-kit
+  - Chat UI pattern: Chat, ScrollArea, Card, Skeleton for loading states
+  - Decision: USE Shadcn Chat components + Prompt Kit for chat UI
+
+Finding 4: Neon Serverless Driver — Two Modes
+  - HTTP mode (neon() function): FASTEST for single queries, zero connection overhead
+  - WebSocket mode (Pool): For connection reuse within one request
+  - Auto-handles 10,000 concurrent connections
+  - Decision: USE HTTP mode (neon()) — perfect for serverless API routes
+
+Finding 5: Drizzle ORM v0.45.1
+  - Full JSONB support: jsonb().$type<Record<string, any>>()
+  - Batch insert in chunks of 1000 for CSV ingestion
+  - Lightest ORM, serverless-native, beats Prisma for JSONB
+  - Decision: USE for schema definition + queries. Raw SQL for cross-file CTEs.
+
+Finding 6: SSE Streaming in Next.js 15
+  - Use ReadableStream API in Route Handlers
+  - MUST set: export const dynamic = 'force-dynamic'
+  - Headers: Content-Type: text/event-stream, Cache-Control: no-cache
+  - CRITICAL GOTCHA: Avoid async for-await before returning Response (buffers!)
+  - Frontend: fetch() + reader.read() loop
+  - Decision: USE for real-time agent visualization (our wow factor)
+
+Finding 7: Framer Motion for Agent Visualization
+  - Variants with staggered delays: delay: i * 0.3
+  - whileHover/whileTap for interactivity
+  - Perfect for step-by-step agent workflow animation
+  - Decision: USE for both landing page static diagram + live query animation
+
+Finding 8: AG-UI Protocol (Agent-User Interaction)
+  - Open standard for agent-user interaction patterns
+  - Agents emit: tool_start, tool_end, step_complete, agent_finished
+  - Decision: ADOPT event naming convention for our SSE events
+
+Finding 9: Vercel Free Tier is Enough
+  - Unlimited deployments, 100GB bandwidth
+  - Serverless functions: 10s timeout (free), 60s (Pro/$20)
+  - SSE streaming keeps connection alive — timeout doesn't apply
+  - Decision: FREE tier. Upgrade to Pro only if we hit timeout wall.
+
+
+INNOVATION: 3 AI AGENTS THAT COLLABORATE
+==========================================
+
+                ┌─────────────────────────┐
+                │    ORCHESTRATOR          │
+                │    (Next.js API Route)   │
+                └────┬──────┬──────┬───────┘
+                     │      │      │
+                ┌────▼──┐ ┌─▼────┐ ┌▼────────┐
+                │SCHEMA │ │ SQL  │ │VALIDATOR │
+                │ AGENT │ │AGENT │ │  AGENT   │
+                └───────┘ └──────┘ └──────────┘
+
+Agent 1: Schema Agent ("The Architect")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Model: Nemotron Nano 8B (fast, cheap) via NVIDIA NIM
+Job: Analyzes both CSV schemas, discovers column relationships
+
+Input: Both file schemas (columns, types, 10 sample values each)
+Output: JSON with join_key, metrics, aggregation, warnings
+
+Prompt:
+  You are a data schema analyst. Given two file schemas, find:
+  1. The best JOIN key (columns that represent the same entity)
+  2. Which metrics the user is asking about
+  3. Any data quality issues (case, abbreviations, NULLs)
+  Return JSON only.
+
+Agent 2: SQL Agent ("The Builder")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Model: Nemotron Ultra 253B via NVIDIA NIM
+Job: Generates cross-file SQL from Schema Agent's analysis
+
+Input: Schema Agent output + physical table structure + question
+Output: PostgreSQL CTE query
+
+The SQL uses JSONB self-join pattern:
+  WITH file_a AS (
+      SELECT row_data->>'Department' AS dept,
+             AVG((row_data->>'Salary')::NUMERIC) AS avg_salary
+      FROM uploaded_rows
+      WHERE file_id = 'a1'
+      GROUP BY row_data->>'Department'
+  ), file_b AS (...)
+  SELECT COALESCE(a.dept, b.dept) AS "Department", ...
+
+Agent 3: Validator Agent ("The Inspector")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Model: Deterministic checks + Nano 8B for diagnosis
+Job: Checks SQL results, diagnoses failures, triggers retry
+
+Checks:
+  - 0 rows → RETRY (likely case mismatch)
+  - >50% NULLs → RETRY (join key not matching)
+  - SQL error → RETRY (wrong column name)
+  - Results look good → PASS
+
+If RETRY → sends diagnosis back to Schema Agent → loop
+
+Orchestrator (Next.js API Route):
+  Max 3 rounds, 10s timeout
+  Round 1: Schema → SQL → Execute → Validate
+  Round 2 (if retry): Schema(+feedback) → SQL → Execute → Validate
+  Round 3 (if retry): Last attempt → graceful failure message
+
+
+PROJECT STRUCTURE (Real SaaS — auth, dashboard, settings, API)
+===============================================================
+crossquery/
+├── app/
+│   ├── layout.tsx              # Root layout (Geist font, ClerkProvider)
+│   ├── page.tsx                # Landing page (hero + CTA + how it works)
+│   ├── sign-in/
+│   │   └── [[...sign-in]]/
+│   │       └── page.tsx        # Clerk sign-in (3 lines of code)
+│   ├── sign-up/
+│   │   └── [[...sign-up]]/
+│   │       └── page.tsx        # Clerk sign-up (3 lines of code)
+│   ├── dashboard/
+│   │   └── page.tsx            # THE APP: files + chat + agents + results
+│   ├── settings/
+│   │   └── page.tsx            # User profile (Clerk) + preferences
+│   ├── api/
+│   │   ├── upload/
+│   │   │   └── route.ts        # CSV upload → Papa Parse → Neon JSONB
+│   │   ├── query/
+│   │   │   └── route.ts        # SSE stream: orchestrator + 3 agents
+│   │   └── files/
+│   │       └── route.ts        # GET: list user's files
+│   └── components/
+│       ├── file-sidebar.tsx    # Left: demo files + user files + upload btn
+│       ├── chat-input.tsx      # Question input + example query chips
+│       ├── agent-visual.tsx    # REAL-TIME agent viz (Framer Motion)
+│       ├── results-table.tsx   # Results display + NL summary
+│       ├── sql-viewer.tsx      # "View SQL" toggle (expandable)
+│       ├── upload-zone.tsx     # Drag-and-drop CSV upload dialog
+│       ├── user-guide.tsx      # User guide modal (how to use + examples)
+│       └── navbar.tsx          # Top nav: logo, User Guide btn, user avatar
+├── lib/
+│   ├── db.ts                   # Neon HTTP connection (Drizzle)
+│   ├── nvidia.ts               # NVIDIA NIM client (OpenAI SDK)
+│   ├── agents/
+│   │   ├── schema-agent.ts     # Schema Agent (Nano 8B)
+│   │   ├── sql-agent.ts        # SQL Agent (253B Ultra)
+│   │   ├── validator-agent.ts  # Validator (deterministic + Nano 8B)
+│   │   └── orchestrator.ts     # Max 3 rounds, SSE event emitter
+│   └── types.ts                # Agent events, SSE messages, file schemas
+├── hooks/
+│   └── use-agent-stream.ts     # SSE consumer hook (ReadableStream reader)
+├── middleware.ts                # Clerk auth middleware (protects /dashboard)
+├── scripts/
+│   └── seed.ts                 # Pre-load demo CSV data into Neon
+├── drizzle/
+│   ├── schema.ts               # DB schema (Drizzle ORM typed)
+│   └── drizzle.config.ts       # Drizzle Kit config
+├── demo-data/
+│   ├── employees.csv           # Demo pair 1
+│   ├── training.csv            # Demo pair 1
+│   ├── products.csv            # Demo pair 2
+│   └── orders.csv              # Demo pair 2
+└── .env.local                  # NVIDIA_API_KEY, DATABASE_URL,
+                                # NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+                                # CLERK_SECRET_KEY
+
+ROUTE MAP (what judges see):
+  /              → Landing page (public)
+  /sign-up       → Clerk signup (public)
+  /sign-in       → Clerk login (public)
+  /dashboard     → The app — protected by Clerk middleware
+  /settings      → User profile + preferences — protected
+  /api/upload    → CSV upload endpoint
+  /api/query     → Agent pipeline endpoint (SSE)
+  /api/files     → List user's uploaded files
+
+
+DATABASE SCHEMA (Neon — HTTP mode, Drizzle ORM v0.45.1)
+========================================================
+-- Use neon() HTTP function (fastest for serverless, zero connection overhead)
+-- Drizzle for schema + typed queries, raw SQL for cross-file CTEs
+
+-- Drizzle schema (drizzle/schema.ts):
+import { pgTable, uuid, varchar, jsonb, integer, timestamp, bigserial, index } from 'drizzle-orm/pg-core';
+
+export const uploadedFiles = pgTable('uploaded_files', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userSession: varchar('user_session', { length: 255 }).notNull(),
+  fileName: varchar('file_name', { length: 255 }).notNull(),
+  columns: jsonb('columns').$type<string[]>().notNull(),
+  columnTypes: jsonb('column_types').$type<Record<string, string>>().notNull(),
+  sampleValues: jsonb('sample_values').$type<Record<string, string[]>>(),
+  rowCount: integer('row_count'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const uploadedRows = pgTable('uploaded_rows', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  fileId: uuid('file_id').references(() => uploadedFiles.id),
+  userSession: varchar('user_session', { length: 255 }).notNull(),
+  rowData: jsonb('row_data').$type<Record<string, any>>().notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  fileIdx: index('idx_rows_file').on(table.fileId),
+  sessionIdx: index('idx_rows_session').on(table.userSession),
+}));
+
+-- Neon connection (lib/db.ts):
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+import * as schema from '@/drizzle/schema';
+
+const sql = neon(process.env.DATABASE_URL!);
+export const db = drizzle(sql, { schema });
+
+-- CSV batch insert (chunks of 1000 for performance):
+async function insertCsvRows(fileId: string, session: string, rows: any[]) {
+  const BATCH = 1000;
+  for (let i = 0; i < rows.length; i += BATCH) {
+    await db.insert(schema.uploadedRows).values(
+      rows.slice(i, i + BATCH).map(row => ({
+        fileId, userSession: session, rowData: row
+      }))
+    );
+  }
+}
+
+
+THE WOW FACTOR: VISUAL AGENT WORKFLOW (Like Claude Browser "Thinking")
+=======================================================================
+This is what wins the hackathon. Inspired by how Claude browser shows
+its thinking process — but with 3 visual agent icons that light up,
+animate, and show the collaboration happening in real-time.
+
+TWO MODES:
+1. BEFORE QUERY: Landing page hero shows the 3 agents + flow arrows
+   as a static diagram. Animated on page load (1→2→3, back arrow pulses).
+   Judges understand the architecture before pressing anything.
+
+2. DURING QUERY: Same 3 agents animate live while processing.
+   Each agent icon lights up when active, shows status text,
+   dims when done. If retry → back arrow glows, Schema Agent
+   re-activates. Judges SEE the agents talking to each other.
+
+Visual component (agent-visual.tsx):
+  ┌──────┐    ──→    ┌──────┐    ──→    ┌──────┐
+  │  🔍  │           │  🔨  │           │  ✓  │
+  │Schema│           │ SQL  │           │Valid.│
+  │Agent │           │Agent │           │Agent │
+  └──────┘    ←──    └──────┘    ←──    └──────┘
+  (pulsing)  (retry arrow)
+
+States per agent:
+  - idle (gray, dimmed)
+  - active (blue glow, pulsing, status text updating)
+  - done (green checkmark)
+  - retry (orange, back arrow animates)
+  - error (red)
+
+Status text examples (stream in real-time):
+  Schema: "Analyzing columns..." → "Found: Department ↔ Dept (92%)"
+  SQL: "Generating CTE query..." → "FULL OUTER JOIN on department"
+  Validator: "Checking 5 rows..." → "PASS — 0% nulls"
+
+Implementation: Server-Sent Events (SSE) via native ReadableStream.
+  Each agent step sends an event → frontend updates the visual.
+
+  Backend (API Route):
+    export const dynamic = 'force-dynamic';
+    return new Response(
+      new ReadableStream({
+        async start(controller) {
+          controller.enqueue(`data: ${JSON.stringify({
+            agent: 'schema', status: 'active',
+            message: 'Analyzing columns...'
+          })}\n\n`);
+          // ... agent processing ...
+          controller.close();
+        }
+      }),
+      { headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+      }}
+    );
+
+  Frontend (useAgentStream hook):
+    const stream = await fetch('/api/query', { method: 'POST', body });
+    const reader = stream.body?.getReader();
+    while (true) {
+      const { done, value } = await reader?.read() || {};
+      if (done) break;
+      const text = new TextDecoder().decode(value);
+      // Parse SSE → update Framer Motion agent states
+    }
+
+  SSE Event Names (AG-UI protocol convention):
+    - agent_start: { agent, status: 'active' }
+    - agent_progress: { agent, message: 'Found join key...' }
+    - agent_complete: { agent, status: 'done', result }
+    - round_retry: { round, diagnosis }
+    - query_complete: { data, columns, timing }
+
+  Framer Motion Agent Animation:
+    const stepVariants = {
+      idle:   { opacity: 0.4, scale: 0.95 },
+      active: { opacity: 1, scale: 1.05, transition: { repeat: Infinity, duration: 1.5 } },
+      done:   { opacity: 1, scale: 1, borderColor: '#22c55e' },
+      retry:  { opacity: 1, scale: 1, borderColor: '#f97316' }
+    };
+
+This is what makes judges say "I've never seen this before."
+Show the agents "thinking" live:
+
+┌──────────────────────────────────────────────────┐
+│  "Compare average salary vs training cost"       │
+├──────────────────────────────────────────────────┤
+│                                                  │
+│  🔍 Schema Agent: Analyzing files...             │
+│     ✅ Found join key: Department ↔ Dept (92%)   │
+│     ✅ Metrics: Salary (file A), Cost (file B)   │
+│     ⚠️ Warning: abbreviations detected           │
+│                                                  │
+│  🔨 SQL Agent: Generating query...               │
+│     ✅ CTE with LOWER() for case matching        │
+│     ✅ FULL OUTER JOIN on department              │
+│                                                  │
+│  ✓ Validator: Checking results...                │
+│     ✅ 5 rows returned, 0% NULLs — PASS          │
+│                                                  │
+│  ┌─────────────┬──────────┬────────────┐         │
+│  │ Department  │ Avg Sal  │ Avg Cost   │         │
+│  ├─────────────┼──────────┼────────────┤         │
+│  │ Engineering │ $95,000  │ $2,400     │         │
+│  │ Sales       │ $72,000  │ $1,800     │         │
+│  │ HR          │ $68,000  │ $3,100     │         │
+│  └─────────────┴──────────┴────────────┘         │
+│                                                  │
+│  ⏱ 1.7s · Round 1 of 3 · 2 API calls           │
+└──────────────────────────────────────────────────┘
+
+Use Server-Sent Events (SSE) or Vercel AI SDK streaming to show
+each agent's status in real-time. This is the demo that wows judges.
+
+
+PAGE LAYOUTS
+=============
+
+LANDING PAGE (/ — public, what judges see first)
+┌────────────────────────────────────────────────────────────┐
+│ [CrossQuery logo]                    [Sign In] [Sign Up]   │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│           Upload. Ask. Watch AI Think.                     │
+│                                                            │
+│   Your AI data analyst. Upload spreadsheets, ask anything  │
+│   in plain English. 3 AI agents figure out the answer.     │
+│                                                            │
+│              [Get Started Free →]                          │
+│                                                            │
+│   HOW IT WORKS:                                            │
+│   1. Upload your CSV files                                 │
+│   2. Ask a question in plain English                       │
+│   3. Watch 3 AI agents collaborate live                    │
+│                                                            │
+│   [Schema Agent 🔍] → [SQL Agent 🔨] → [Validator ✓]     │
+│   (animated diagram, decorative)                           │
+│                                                            │
+│   "Tableau needs drag-and-drop. Power BI needs composite   │
+│    models. CrossQuery needs one sentence."                  │
+│                                                            │
+│   Built with Next.js 15 · NVIDIA NIM · Neon PostgreSQL     │
+└────────────────────────────────────────────────────────────┘
+
+DASHBOARD (/dashboard — protected, the actual app)
+┌────────────────────────────────────────────────────────────┐
+│ [≡] [CrossQuery]  [User Guide]           [🔔] [👤 Avatar] │
+├──────────────┬─────────────────────────────────────────────┤
+│ 📁 Your Data │                                             │
+│              │  CrossQuery                                 │
+│ Demo Files:  │  "Your AI Data Analyst"                     │
+│ ● employees  │  Ask anything about your data               │
+│   5 cols 20r │                                             │
+│ ● training   │  Example queries:                           │
+│   5 cols 15r │  [Compare salary vs training by dept]       │
+│ ● products   │  [Most ordered product?]                    │
+│   4 cols 10r │  [Average salary by department]             │
+│ ● orders     │                                             │
+│   5 cols 25r │  ┌────────────────────────────────────┐     │
+│              │  │ Ask about your data...         [→] │     │
+│ Your Files:  │  └────────────────────────────────────┘     │
+│ (none yet)   │                                             │
+│              │  [Agent visualization]                      │
+│ [+ Upload]   │  [Results table]                            │
+│              │  [View SQL] [NL Summary]                    │
+└──────────────┴─────────────────────────────────────────────┘
+
+SETTINGS (/settings — protected)
+┌────────────────────────────────────────────────────────────┐
+│ [← Back to Dashboard]                        [👤 Avatar]   │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│  Profile (Clerk <UserProfile/>)                            │
+│  ┌──────────────────────────────┐                          │
+│  │ Name: Lubo Bali              │                          │
+│  │ Email: lubo@lubot.ai         │                          │
+│  │ [Manage Account]             │                          │
+│  └──────────────────────────────┘                          │
+│                                                            │
+│  Preferences                                               │
+│  Theme: [Light ○] [Dark ●]                                │
+│                                                            │
+│  My Data                                                   │
+│  4 demo files · 0 uploaded files                           │
+│  [Clear My Uploaded Data]                                  │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+
+The file sidebar shows:
+  - Pre-loaded demo files (always there, for all users)
+  - User's uploaded files (linked to Clerk user ID)
+  - Column names + row count for each file
+  - "+ Upload CSV" button at bottom
+
+
+BUILD SCHEDULE (Prioritized — MUST before SHOULD before NICE)
+==============================================================
+
+Day 1 — Saturday (Feb 21) — MAKE IT WORK
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11:00 AM — Class with Li Yin (AdaL CLI, skills, model switching)
+12:30 PM — Hacking begins
+
+12:30-2:30 PM: PROJECT SETUP + AUTH + DB + SEED (2h) [MUST]
+  - npx create-next-app@latest crossquery --typescript --tailwind --app
+  - npx shadcn@latest init + install all deps
+  - Set up Clerk: create account (clerk.com), add keys, ClerkProvider,
+    middleware.ts, sign-in/sign-up pages (10 min total)
+  - Create Neon DB (crossquery), Drizzle schema, push tables
+  - Set up lib/db.ts + lib/nvidia.ts + .env.local
+  - Create seed script: insert demo CSV data into Neon
+    (employees.csv + training.csv + products.csv + orders.csv)
+  - Vercel account + connect GitHub repo + verify deploy
+  - CHECKPOINT: Sign up works, demo data in Neon, npm run dev ✅
+
+2:00-4:00 PM: SCHEMA AGENT + SQL AGENT (2h) [MUST]
+  - lib/agents/schema-agent.ts — Nano 8B prompt, JSON output
+  - lib/agents/sql-agent.ts — 253B prompt, CTE JSONB pattern
+  - Test both agents standalone with hardcoded schemas
+  - CHECKPOINT: Schema Agent returns join key JSON, SQL Agent returns valid SQL ✅
+
+4:00-6:00 PM: VALIDATOR + ORCHESTRATOR + EXECUTE (2h) [MUST]
+  - lib/agents/validator-agent.ts — deterministic checks
+  - lib/agents/orchestrator.ts — max 3 rounds loop
+  - Execute SQL against Neon, parse results
+  - API route: /api/query → full pipeline (no streaming yet, just JSON response)
+  - CHECKPOINT: POST /api/query returns correct results for demo data ✅
+
+6:00-8:00 PM: BASIC UI — CHAT + RESULTS (2h) [MUST]
+  - Single page: hero text + file sidebar + chat input + results table
+  - Clickable example query chips (pre-filled questions)
+  - File sidebar showing available demo files + columns
+  - Wire /api/query → display results in table
+  - CHECKPOINT: Click example chip → see agent results in browser ✅
+
+8:00-9:00 PM: CSV UPLOAD (1h) [MUST]
+  - Upload zone component (drag-and-drop)
+  - Papa Parse → detect columns/types/samples → POST /api/upload → Neon
+  - Same agent pipeline runs on uploaded files automatically
+  - CHECKPOINT: Upload new CSV pair → ask question → get answer ✅
+
+9:00 PM: DEPLOY TO VERCEL [MUST]
+  - git push → auto-deploys
+  - Test on live URL with fresh browser
+  - CHECKPOINT: crossquery.vercel.app works end-to-end ✅
+
+  ═══════════════════════════════════════════════════════
+  END OF DAY 1: WORKING PRODUCT DEPLOYED. Everything after
+  this is making it BEAUTIFUL, not making it WORK.
+  ═══════════════════════════════════════════════════════
+
+Day 2 — Sunday (Feb 22) — MAKE IT WOW
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11:00 AM — Class with Zach Wilson (backend, Supabase, Vercel)
+
+12:00-3:00 PM: AGENT VISUALIZATION + SSE (3h) [SHOULD — wins 1st place]
+  - Refactor /api/query to use SSE ReadableStream
+  - Frontend hook: use-agent-stream.ts (SSE consumer)
+  - agent-visual.tsx with Framer Motion:
+    * 3 agent cards (Schema → SQL → Validator)
+    * States: idle/active/done/retry
+    * Status text streaming ("Analyzing columns..." → "Found join key")
+    * Animated arrows between agents
+    * Round indicator
+  - CHECKPOINT: Query shows live agent animation → then results ✅
+
+3:00-4:00 PM: VIEW SQL + NL SUMMARY (1h) [SHOULD]
+  - "View SQL" toggle button → shows generated CTE query
+  - After results table: 1-line natural language summary
+    (253B generates: "Engineering has highest salary but lowest training cost")
+  - CHECKPOINT: Results show table + summary + expandable SQL ✅
+
+4:00-5:30 PM: LANDING PAGE + SETTINGS + USER GUIDE (1.5h) [SHOULD]
+  - Landing page (/): hero, "how it works" 3 steps, agent diagram, CTA
+  - Settings page (/settings): Clerk <UserProfile/> + theme toggle
+  - User Guide modal: "How to use CrossQuery" + example queries + tips
+  - Navbar: logo, User Guide button, Clerk <UserButton/> avatar
+  - Loading states, error messages, edge cases
+  - CHECKPOINT: Full SaaS feel — landing → signup → dashboard → settings ✅
+
+5:30-7:00 PM: FINAL TESTING + BUG FIXES (1.5h)
+  - Test all 5 demo queries
+  - Test with user-uploaded CSV files (2 different pairs)
+  - Test on mobile (basic)
+  - Fix any Vercel deploy issues
+  - Push final version
+
+7:00-8:00 PM: SUBMISSION (1h)
+  - Full page screenshot (1280px+)
+  - Write explainer_lubo.md
+  - Zip: all Next.js files + screenshot + explainer
+  - Submit before deadline
+  - Celebrate 🎉
+
+
+SUBMISSION DELIVERABLES
+=======================
+1. landing_page_lubo.png — Full screenshot of landing page
+2. Next.js routes export (all components)
+3. explainer_lubo.md:
+   - Product: CrossQuery
+   - One-liner: "3 AI agents that auto-discover how your CSV files
+     connect and answer cross-file questions in plain English"
+   - Problem: Analysts spend hours manually joining datasets in
+     Tableau/Power BI. No tool auto-discovers relationships.
+   - Solution: Upload 2 CSVs, ask a question, 3 AI agents collaborate
+     to find the connection, build the SQL, validate the results.
+4. Live URL: crossquery.vercel.app (or similar)
+5. GitHub: public repo
+
+
+TEST QUERIES (Demo — clickable chips in UI)
+=============================================
+
+Pair 1: employees.csv + training.csv
+  Source: /Users/lu/LuBot_hybrid/Test_files/Joins test/
+  Join key: Department ↔ Dept (fuzzy)
+
+  Q1: "Compare average salary vs training cost by department"
+      → Table: Department | Avg Salary | Avg Training Cost
+
+  Q2: "Which department spends the most on training?"
+      → Single answer: department name + amount
+
+  Q3: "Show me employees with the highest salary and their training"
+      → Joined list: Employee | Salary | Training Program | Cost
+
+Pair 2: products.csv + orders.csv (create these)
+  Join key: Product_ID (exact)
+
+  Q4: "Show total revenue by product category"
+      → Table: Category | Total Revenue (Price × Quantity)
+
+  Q5: "What's the most ordered product?"
+      → Single answer: product name + total quantity
+
+Free-form (judges type their own):
+  Q6: (any question about the demo data)
+  Q7: (upload their own CSVs + ask)
+
+
+WHY THIS WINS
+=============
+1. REAL INNOVATION: 3 AI agents collaborating — no hackathon project
+   will have this. Everyone else will build basic CRUD SaaS.
+
+2. LIVE AGENT VISUALIZATION: Judges SEE the agents thinking and
+   communicating in real-time. Visual wow factor.
+
+3. WORKING PRODUCT: Not a mockup. Real CSV upload, real SQL, real
+   cross-file joins, real results.
+
+4. SOLVES REAL PROBLEM: Every data analyst knows the pain of
+   manually joining datasets. This automates it completely.
+
+5. LATEST TECH (all Feb 2026):
+   - Next.js 15 App Router + React 19
+   - NVIDIA NIM (Nemotron 253B Ultra + Nano 8B)
+   - Neon PostgreSQL (HTTP serverless driver)
+   - Drizzle ORM v0.45.1 (typed JSONB)
+   - Shadcn/ui (Visual Project Builder, Chat components)
+   - Framer Motion (agent workflow animations)
+   - SSE via ReadableStream (native, zero deps)
+
+6. CLEAN CODE: Built with AdaL CLI during the hackathon (as required).
+
+7. AG-UI PROTOCOL: Agent event naming follows the open AG-UI standard
+   (agent_start, agent_progress, agent_complete, round_retry).
+   Shows judges we know the latest agent-user interaction patterns.
+
+
+POST-HACKATHON: PORT BACK TO LUBOT
+====================================
+After the hackathon, the agent architecture ports directly back to
+LuBot's Phase 6C:
+  - Schema Agent prompt → tools/cross_file_agents.py
+  - SQL Agent prompt → tools/cross_file_agents.py
+  - Validator logic → tools/cross_file_agents.py
+  - Orchestrator loop → same pattern, Python instead of TypeScript
+
+The hackathon is a prototype. LuBot gets the production version.
+
+
+NVIDIA NIM API SETUP (Same endpoint as LuBot — TypeScript)
+============================================================
+Already have API key. NIM has OpenAI-compatible endpoint.
+Same key, same URL — just TypeScript instead of Python.
+
+  // lib/nvidia.ts
+  import OpenAI from 'openai';
+
+  export const nvidia = new OpenAI({
+    apiKey: process.env.NVIDIA_API_KEY!,
+    baseURL: "https://integrate.api.nvidia.com/v1"
+  });
+
+  // Schema Agent (Nano 8B — fast, cheap, structured output)
+  export async function callSchemaAgent(prompt: string) {
+    const res = await nvidia.chat.completions.create({
+      model: "nvidia/llama-3.1-nemotron-nano-8b-v1",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0,
+      max_tokens: 2048,
+    });
+    return res.choices[0].message.content;
+  }
+
+  // SQL Agent (253B Ultra — most accurate, used in LuBot production)
+  export async function callSqlAgent(prompt: string) {
+    const res = await nvidia.chat.completions.create({
+      model: "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0,
+      max_tokens: 4096,
+    });
+    return res.choices[0].message.content;
+  }
+
+  // Install: npm install openai
+  // That's it — same OpenAI SDK, just different baseURL.
+
+Model IDs to try (check NIM catalog day-of):
+  - nvidia/llama-3.1-nemotron-ultra-253b-v1  (LuBot uses this)
+  - nvidia/llama-3.1-nemotron-nano-8b-v1     (LuBot uses this)
+  - nvidia/llama-3.3-nemotron-super-49b-v1   (backup if 253B unavailable)
+  - nvidia/nemotron-3-8b-instruct            (Nemotron 3 family, newly available)
+
+
+ENVIRONMENT VARIABLES (.env.local)
+===================================
+NVIDIA_API_KEY=nvapi-xxxxx
+DATABASE_URL=postgresql://user:pass@ep-xxx.us-east-2.aws.neon.tech/crossquery?sslmode=require
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
+CLERK_SECRET_KEY=sk_test_xxxxx
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+Setup:
+- Neon: Use SEPARATE database (crossquery) — not LuBot neondb.
+  Neon dashboard → Settings → Databases → New.
+- Clerk: Create account at clerk.com (FREE). Create application.
+  Copy publishable key + secret key.
+- NVIDIA: Same API key as LuBot.
+
+
+INSTALL COMMANDS (copy-paste ready)
+====================================
+# 1. Create project
+npx create-next-app@latest crossquery --typescript --tailwind --app --src-dir --import-alias "@/*"
+
+# 2. Init Shadcn
+cd crossquery
+npx shadcn@latest init
+
+# 3. Install deps
+npm install drizzle-orm @neondatabase/serverless papaparse openai framer-motion @clerk/nextjs
+npm install -D drizzle-kit @types/papaparse
+
+# 4. Add Shadcn components (one command)
+npx shadcn@latest add button card input scroll-area skeleton badge dialog tooltip
+
+# 5. Push schema to Neon
+npx drizzle-kit push
+
+# 6. Verify
+npm run dev
+
+ DONE (Core - Working)                                      
+                                                                                                                 
+  - ✅ 3 AI agents (Schema + SQL + Validator + Summary)                                                          
+  - ✅ SSE streaming + Framer Motion live animation                                                              
+  - ✅ Cross-file JSONB joins with CTE queries                                                                   
+  - ✅ CSV upload works with ANY file                                                                            
+  - ✅ NL summary after results                                                                                  
+  - ✅ View SQL toggle                                                                                           
+  - ✅ Clerk auth + protected routes                                                                             
+  - ✅ Landing page with hero + How It Works + agent diagram                                                     
+  - ✅ User Guide modal                                                                                          
+  - ✅ 6000 rows demo data seeded                                                                                
+  - ✅ Build passes clean
+                                                                                                                 
+  MISSING (Would Strengthen for 1st Place)                                                                       
+                                                                                                                 
+  ┌────────────────────────────────────────────────┬────────────────────────────────────────────────────┬───────┐
+  │                      What                      │                       Impact                       │ Time  │
+  ├────────────────────────────────────────────────┼────────────────────────────────────────────────────┼───────┤
+  │ Demo Pair 2 (products + orders)                │ Medium — shows system works with different data    │ 15    │
+  │                                                │ types                                              │ min   │
+  ├────────────────────────────────────────────────┼────────────────────────────────────────────────────┼───────┤
+  │ Settings page (theme toggle + clear data)      │ Low — judges won't spend time here                 │ Skip  │
+  ├────────────────────────────────────────────────┼────────────────────────────────────────────────────┼───────┤
+  │ Submission artifacts (screenshot +             │ HIGH — required for submission                     │ 20    │
+  │ explainer.md)                                  │                                                    │ min   │
+  ├────────────────────────────────────────────────┼────────────────────────────────────────────────────┼───────┤
+  │ Deploy to Vercel                               │ CRITICAL — judges need live URL                    │ 10    │
+  │                                                │                                                    │ min   │
+  ├────────────────────────────────────────────────┼────────────────────────────────────────────────────┼───────┤
+  │ GitHub repo public                             │ HIGH — judges review code                          │ 5 min │
+  └────────────────────────────────────────────────┴────────────────────────────────────────────────────┴───────┘
+
+  WHAT WINS 1ST PLACE (Innovation Differentiators)
+
+  1. Live agent collaboration — no one else will have this
+  2. Real PostgreSQL — not in-memory pandas like ChatGPT
+  3. Self-correcting pipeline — 3-round retry with feedback
+  4. Any CSV works — proven with retail_sales, employees, training data
+  5. NVIDIA NIM — 253B Ultra + Nano 8B (two models collaborating)
+  6. AG-UI Protocol — standard event naming
+
+  What do you want to tackle first? I'd recommend: Deploy to Vercel (critical) then explainer.md for submission.
+
+

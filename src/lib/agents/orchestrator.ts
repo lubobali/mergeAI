@@ -2,15 +2,17 @@ import { runSchemaAgent } from "./schema-agent";
 import { runSqlAgent } from "./sql-agent";
 import { runValidator } from "./validator-agent";
 import { runSummaryAgent } from "./summary-agent";
+import { runChartAgent } from "./chart-agent";
 import { executeRawSql } from "@/lib/db";
-import type { FileSchema, AgentEvent, QueryResult } from "@/lib/types";
+import type { FileSchema, AgentEvent, QueryResult, ChartConfig, ConversationContext } from "@/lib/types";
 
 const MAX_ROUNDS = 3;
 
 export async function runAgentPipeline(
   question: string,
   schemas: FileSchema[],
-  onEvent: (event: AgentEvent) => void
+  onEvent: (event: AgentEvent) => void,
+  context?: ConversationContext
 ): Promise<QueryResult> {
   const startTime = Date.now();
   let feedback: string | undefined;
@@ -48,7 +50,7 @@ export async function runAgentPipeline(
       message: "Generating PostgreSQL query...",
     });
 
-    const sql = await runSqlAgent(question, schemas, analysis);
+    const sql = await runSqlAgent(question, schemas, analysis, context);
     console.log("🔨 SQL Agent generated:\n", sql);
 
     onEvent({
@@ -125,6 +127,17 @@ export async function runAgentPipeline(
         console.log("⚠️ Summary agent failed — skipping");
       }
 
+      // Generate chart (non-blocking — don't fail the pipeline)
+      let chart: ChartConfig | undefined;
+      try {
+        chart = await runChartAgent(question, columns, rows);
+        if (chart) {
+          console.log(`📊 Chart Agent: ${chart.type} chart — "${chart.title}"`);
+        }
+      } catch {
+        console.log("⚠️ Chart agent failed — skipping");
+      }
+
       onEvent({
         type: "query_complete",
         message: "Done",
@@ -137,6 +150,7 @@ export async function runAgentPipeline(
         rowCount: rows.length,
         sql,
         summary,
+        chart,
         rounds: round,
         timing: Date.now() - startTime,
       };

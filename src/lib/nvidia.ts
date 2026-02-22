@@ -27,6 +27,17 @@ export async function callSummaryAgent(prompt: string): Promise<string> {
   return res.choices[0].message.content || "";
 }
 
+// Chart Agent — Nano 8B (fast chart type selection)
+export async function callChartAgent(prompt: string): Promise<string> {
+  const res = await nvidia.chat.completions.create({
+    model: "nvidia/llama-3.1-nemotron-nano-8b-v1",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0,
+    max_tokens: 1024,
+  });
+  return res.choices[0].message.content || "";
+}
+
 // SQL Agent — 253B Ultra (most accurate, production-grade)
 // Per NVIDIA docs: "detailed thinking off" disables <think> tags for clean output
 export async function callSqlAgent(prompt: string): Promise<string> {

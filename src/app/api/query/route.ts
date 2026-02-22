@@ -18,7 +18,7 @@ async function getAuthUserId(): Promise<string> {
 
 export async function POST(req: Request) {
   const userId = await getAuthUserId();
-  const { question } = await req.json();
+  const { question, context } = await req.json();
 
   if (!question) {
     return Response.json({ error: "Missing question" }, { status: 400 });
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       };
 
       try {
-        const result = await runAgentPipeline(question, schemas, sendEvent);
+        const result = await runAgentPipeline(question, schemas, sendEvent, context);
 
         // Send final result
         controller.enqueue(

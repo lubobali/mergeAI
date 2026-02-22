@@ -1,0 +1,108 @@
+Instructions
+🚀 48-Hour Vibe Coding Hackathon — Project Details
+Date: February 21–23, 2026 Format: Solo or Team (max 3 members) Theme: Build a Real SaaS Product in 48 Hours
+
+🎯 Overview
+Welcome to the Vibe Coding Hackathon! Your challenge is to design, build, and ship a fully functional SaaS (Software as a Service) product using Next.js within 48 hours. This is your chance to turn an idea into something real — a product people could actually pay for.
+
+Think about a real problem you or someone you know faces. Build a clean, polished solution. Ship it.
+
+🛠️ Tech Requirements
+RequirementDetailsFrameworkNext.js (v14+ recommended, App Router preferred)StylingAny (Tailwind CSS, CSS Modules, Shadcn/ui, etc.)BackendNext.js API Routes or Server ActionsDatabaseOptional but encouraged (Supabase, PlanetScale, Neon, etc.)AuthOptional but encouraged (NextAuth, Clerk, etc.)DeploymentRequired — must be publicly accessible (Vercel recommended)
+
+📦 What You Must Submit
+All submissions are due within 96 hours of the hackathon start time.
+
+All files must be in a single zip file!
+
+1. 🖼️ Landing Page Screenshot
+Upload a full-page screenshot of your product's public landing page.
+
+Must clearly show your product name, tagline, and value proposition
+
+Should include a visible call-to-action (e.g., "Sign Up", "Get Started", "Try for Free")
+
+Format: PNG or JPG, minimum width 1280px
+
+Add this file to the zip as: landing_page_<team_name>.png
+
+💡 Tip: Use a browser extension like GoFullPage or your browser's built-in screenshot tool for a clean full-page capture.
+
+2. 🗂️ Next.js Routes Export
+Add all your NextJS components to the zip as well
+
+3. 📝 Submission Form
+Complete the submission form with:
+
+Product name & one-line description
+
+Team members (names + emails)
+
+Live deployment URL
+
+GitHub repository URL (set to public before submission)
+
+2–3 sentence description of the problem you solved
+
+Add this to the project as : explainer_<team name>.md
+
+💡 What Makes a Great SaaS Product?
+A strong submission will have:
+
+Clear Value Proposition — Who is this for? What problem does it solve?
+
+Working Core Feature — At least one key feature must be fully functional end-to-end
+
+Clean UI/UX — The landing page and app should look professional and intentional
+
+Logical Route Structure — Routes should reflect a real product architecture (auth, dashboard, settings, API)
+
+Deployment — The product must be live and accessible by judges
+
+⏰ Hackathon Timeline
+Day 1 — 11:00 AM
+
+First class
+
+Day 1 — 12:30 PM
+
+Hacking begins ⚡
+
+Day 2 — 11:00 AM
+
+Second class
+
+Day 4 (tuesday) — 11:59 PM (pacific time)
+
+Submissions close 🛑
+
+Day 5— 10:00 AM
+
+Judging begins
+
+Day 5 — 2:00 PM
+
+Winner announcements 🏆
+
+🏆 Prizes
+🥇 1st Place — entry to Zach's AI Boot camp and 1 year of AdaL CLI
+
+🥈 2nd Place — entry to Zach's AI Boot camp and 1 year of AdaL CLI
+
+🥉 3rd Place — A LinkedIn shoutout from both Zach and Li
+
+💡 Most Creative Idea — A LinkedIn shoutout from both Zach and Li
+
+📋 Rules
+All code must be written during the 48-hour window
+
+You may use open-source libraries, templates, and UI kits — but the product idea and core logic must be your own
+
+AI coding tools (GitHub Copilot, Cursor, v0, etc.) are allowed and encouraged — this is a vibe coding hackathon!
+
+Teams must submit all required deliverables to be eligible for judging
+
+Plagiarism or submitting a pre-built project will result in disqualification
+
+🙋 Questions?
+Reach out to organizers on the event Discord or at the help desk. Good luck — go build something awesome! 🎉

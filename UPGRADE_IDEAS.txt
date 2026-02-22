@@ -1,0 +1,251 @@
+======================================================================
+MergeAI — Upgrade Ideas to WIN the Hackathon
+======================================================================
+Deadline: Tuesday Feb 25, 11:59 PM PST
+Current score: 100/100 (AI grader)
+Goal: Beat every competitor. Make judges say "this is not a hackathon project, this is a real product."
+======================================================================
+
+
+----------------------------------------------------------------------
+TIER 1: HIGH IMPACT — Build These First
+----------------------------------------------------------------------
+
+1. INTERACTIVE CHARTS (Port from LuBot — Plotly)
+   - 4th agent: "Chart Agent" card animates while picking visualization
+   - Auto-pick chart type based on result shape:
+     * Categorical + numeric → bar chart
+     * Time series → line chart
+     * Two categories + numeric → heatmap
+     * Parts of whole → pie chart
+     * Two numerics → scatter plot
+   - Interactive Plotly.js (hover tooltips, zoom, pan, download PNG)
+   - LuBot already has this in adalflow_agent.py — port the logic
+   - Renders inline below the results table
+   - Priority: #1 (biggest visual wow factor)
+   - Estimate: 1 day
+
+2. VISUAL SCHEMA MAP (New — Even LuBot doesn't have this)
+   - When 2+ files uploaded, show an interactive diagram:
+     * Files as nodes (boxes with file name + column list)
+     * Detected join keys as edges between nodes
+     * Confidence percentage on each edge
+     * Color-coded: green = high confidence, yellow = fuzzy match
+   - Library: React Flow (lightweight, drag-and-drop nodes)
+   - Appears above the chat when user has 2+ files
+   - Clicking a join key highlights it in both files
+   - THIS IS THE "MERGE" IN MERGEAI — makes the product name literal
+   - Priority: #2 (unique, visually striking, no competitor will have this)
+   - Estimate: 1 day
+
+3. AI-SUGGESTED QUESTIONS (After Upload)
+   - After CSV upload, Schema Agent analyzes columns + sample values
+   - Generates 5 smart questions specific to THIS data:
+     * "Your data has Salary + Department + Gender — try: Compare salary by gender across departments"
+     * "You have dates — try: Show training cost trend over time"
+   - Replaces generic example chips with data-specific suggestions
+   - Clickable — runs the query immediately
+   - Priority: #3 (zero-friction onboarding, shows AI understanding)
+   - Estimate: 0.5 day
+
+
+----------------------------------------------------------------------
+TIER 2: MEDIUM IMPACT — Build If Time Allows
+----------------------------------------------------------------------
+
+4. DATA PREVIEW (Port from LuBot)
+   - Click any file in sidebar → modal/panel shows first 10 rows
+   - Column headers with data types (text, number, date)
+   - Row count, null percentage per column
+   - Mini sparklines for numeric columns (optional)
+   - LuBot has this — port the concept to Next.js
+   - Priority: #4
+   - Estimate: 0.5 day
+
+5. EXPORT RESULTS AS PDF
+   - "Download PDF" button on results
+   - PDF includes: question, SQL query, chart image, data table, summary
+   - Library: jsPDF + html2canvas (render the results div to PDF)
+   - Branded: MergeAI logo + timestamp + page numbers
+   - Looks like a professional analytics report
+   - Priority: #5
+   - Estimate: 0.5 day
+
+6. FOLLOW-UP QUESTIONS (Conversational Context)
+   - After a query, user can ask "now filter to just Engineering"
+     or "break that down by gender" without repeating full question
+   - Send previous question + SQL + results as context to agents
+   - SQL Agent modifies the previous query instead of starting from scratch
+   - LuBot has this pattern — port the conversation threading
+   - Priority: #6
+   - Estimate: 1 day
+
+7. CHAT HISTORY (Multiple Sessions)
+   - Left sidebar section: "Recent Queries" with timestamps
+   - Click any past query → re-loads the result (table + chart + SQL)
+   - Stored in localStorage (no DB needed for hackathon)
+   - Or: Neon table for persistent history across devices
+   - Shows the app is stateful, like a real product
+   - Priority: #7
+   - Estimate: 0.5 day
+
+
+----------------------------------------------------------------------
+TIER 3: POLISH & DIFFERENTIATION — Cherry Pick
+----------------------------------------------------------------------
+
+8. INSTANT DATA PROFILING ON UPLOAD
+   - The moment CSV is uploaded, auto-generate a profile card:
+     * Row count, column count
+     * Data types per column
+     * Null % per column (color-coded: green <5%, yellow <20%, red >20%)
+     * Min/max/mean for numerics
+     * Top 5 values for categoricals
+     * Distribution sparklines
+   - Shows immediately — no query needed
+   - Proves technical depth to judges
+   - Estimate: 0.5 day
+
+9. CHAIN-OF-THOUGHT REASONING PANEL
+   - Expandable side panel showing agent reasoning live:
+     * Schema Agent: "Found join key: Department in file A ↔ Dept in file B (82% confidence)"
+     * SQL Agent: "Using CTE approach for 2-file cross join..."
+     * Validator: "42 rows returned, 0% nulls — PASS"
+   - Already have agent events via SSE — just need richer UI
+   - Proves AI is not a black box
+   - Estimate: 0.5 day
+
+10. CONFIDENCE SCORE ON RESULTS
+    - Badge on results: "High Confidence" / "Medium" / "Low"
+    - Based on: join key confidence + row count + null % + rounds needed
+    - Green/yellow/red visual indicator
+    - Small effort, big credibility signal
+    - Estimate: 0.25 day
+
+11. ANOMALY DETECTION ALERTS
+    - After query results, auto-flag outliers:
+      * "Warning: Engineering avg salary ($142K) is 3.2x higher than HR ($44K)"
+      * "Outlier: One training program costs $50K (4.7 std dev from mean)"
+    - Proactive intelligence — AI finds things you didn't ask about
+    - Estimate: 0.5 day
+
+12. SHAREABLE RESULTS LINK
+    - "Share" button → generates a public URL with results snapshot
+    - URL contains: chart + table + SQL + summary (read-only)
+    - Judges can share with each other during judging
+    - Implementation: Store result as JSON in Neon, serve via /share/[id]
+    - Estimate: 0.5 day
+
+13. COMPUTED COLUMNS VIA NATURAL LANGUAGE
+    - "Add a column called profit that's revenue minus cost"
+    - Agent adds a virtual computed column to the SQL (CTE alias)
+    - Original file unchanged — column exists only in query context
+    - Shows AI can transform data, not just query it
+    - Estimate: 0.5 day
+
+14. MULTI-FILE DRAG & DROP
+    - Drop 3+ CSVs at once
+    - Auto-detect all pairwise relationships
+    - Show schema map with all connections
+    - One action → full multi-file analysis ready
+    - Estimate: 0.25 day
+
+15. AI-POWERED DATA CLEANING SUGGESTIONS
+    - On upload, detect and suggest fixes:
+      * "Column 'date' has mixed formats (MM/DD/YYYY and YYYY-MM-DD) — standardize?"
+      * "Column 'state' has 'CA', 'California', 'ca' — normalize?"
+    - One-click fix applies transformation
+    - Shows product handles real-world messy data
+    - Estimate: 1 day
+
+16. "EXPLAIN THIS" BUTTON
+    - On any result, one click → AI explains in business terms:
+      * "Engineering department spends 23% more on training than average,
+        but also has the highest salary. This could indicate..."
+    - Different from summary (which describes the data) — this INTERPRETS it
+    - Estimate: 0.25 day
+
+
+----------------------------------------------------------------------
+INNOVATIVE IDEAS — NO OTHER HACKATHON PROJECT WILL HAVE THESE
+----------------------------------------------------------------------
+
+A. "MERGE INTELLIGENCE" — Auto-Discovery Engine
+   When you upload multiple files, MergeAI doesn't just detect joins —
+   it auto-runs 3-5 cross-file queries and shows a "Discovery Dashboard"
+   with the most interesting findings BEFORE you even ask a question.
+   Upload 2 files → instantly see "Top 3 insights we found across your data."
+   NO OTHER TOOL DOES THIS AUTOMATICALLY.
+
+B. NATURAL LANGUAGE CHART CUSTOMIZATION
+   "Make that a horizontal bar chart with blue bars"
+   "Add a trend line to the scatter plot"
+   "Change the title to 'Q4 Revenue by Region'"
+   The Chart Agent understands NL requests to modify the visualization.
+   Even LuBot doesn't do this.
+
+C. DATA STORY MODE
+   Click "Tell Me a Story" → MergeAI runs 5 queries automatically,
+   builds a narrative with charts and insights, and presents a full
+   analytics report like a data analyst would. One click → full report.
+   This is what Hex Threads does but nobody in a hackathon will build it.
+
+D. VOICE QUERIES
+   "Hey MergeAI, what's the average salary by department?"
+   Browser Web Speech API → text → agent pipeline.
+   Microphone button in the input bar. LuBot has voice too — port it.
+   Visually impressive for a live demo.
+
+E. COMPARISON MODE
+   Upload same-structure files from different time periods.
+   "Compare Q1 vs Q2 sales" → side-by-side charts with delta highlights.
+   Auto-detect that files have same columns but different data.
+
+
+----------------------------------------------------------------------
+RECOMMENDED BUILD ORDER (3 days available)
+----------------------------------------------------------------------
+
+Day 1 (Saturday Feb 22):
+  [x] 1. Interactive Plotly Charts (port from LuBot)      ~6 hrs  DONE
+  [x] 6. Follow-up Questions + Context                    ~2 hrs  DONE
+  [x] 7. Chat History (thread UI)                         ~2 hrs  DONE
+
+Day 2 (Sunday Feb 23):
+  [ ] 3. AI-Suggested Questions                           ~2 hrs
+  [ ] 2. Visual Schema Map (React Flow)                   ~4 hrs
+  [ ] 4. Data Preview modal                               ~2 hrs
+
+Day 3 (Monday Feb 24):
+  [ ] 5. Export PDF                                       ~2 hrs
+  [ ] 10. Confidence Score                                ~1 hr
+  [ ] 16. "Explain This" button                           ~1 hr
+  [ ] Final polish, testing, resubmit                     ~2 hrs
+
+
+----------------------------------------------------------------------
+WHAT MAKES US WIN vs COMPETITORS
+----------------------------------------------------------------------
+
+Other hackathon projects will have:
+  - Basic CRUD apps
+  - Single-file data viewers
+  - Chat wrappers around GPT
+
+MergeAI already has:
+  - Multi-file cross-joins (unique)
+  - 3-agent self-correcting pipeline (unique)
+  - JSONB schema-less storage (innovative)
+  - Real-time agent visualization (impressive)
+
+After upgrades, MergeAI will also have:
+  - Interactive Plotly charts (professional)
+  - Visual schema map (nobody else will have this)
+  - AI-suggested questions (zero-friction)
+  - Data preview + profiling (polished)
+  - PDF export (enterprise-ready)
+  - Conversational follow-ups (intelligent)
+  - Chat history (real product behavior)
+
+This is not a hackathon demo. This is a product.
+======================================================================

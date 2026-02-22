@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useAgentStream } from "@/hooks/use-agent-stream";
 import type { AgentStatus } from "@/hooks/use-agent-stream";
 import Papa from "papaparse";
+import PlotlyChart from "@/components/PlotlyChart";
 
 interface FileInfo {
   id: string;
@@ -18,8 +19,8 @@ interface FileInfo {
 
 const EXAMPLE_QUERIES = [
   "Compare average training cost by department",
-  "Which department spends the most on training?",
-  "Show average training duration in days by department",
+  "Show training outcome distribution breakdown",
+  "Show average training cost trend over time by month",
   "What are the top 5 most expensive training programs?",
 ];
 
@@ -47,15 +48,14 @@ export default function Dashboard() {
   const { user } = useUser();
   const isLoggedIn = !!user;
   const [query, setQuery] = useState("");
-  const [activeQuestion, setActiveQuestion] = useState("");
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [showUserGuide, setShowUserGuide] = useState(false);
-  const [showSql, setShowSql] = useState(false);
+  const [expandedSql, setExpandedSql] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { agents, result, isStreaming, error, runQuery, reset } =
+  const { agents, messages, isStreaming, runQuery, clearChat } =
     useAgentStream();
 
   const isAgentActive =
@@ -72,18 +72,25 @@ export default function Dashboard() {
       .catch(console.error);
   }, []);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom when messages or agents change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [agents, result, error]);
+  }, [messages, agents, isStreaming]);
 
   const handleSubmit = async (q?: string) => {
     const question = q || query;
     if (!question.trim() || isAgentActive) return;
-    setActiveQuestion(question);
     setQuery("");
-    setShowSql(false);
     runQuery(question);
+  };
+
+  const toggleSql = (msgId: string) => {
+    setExpandedSql((prev) => {
+      const next = new Set(prev);
+      if (next.has(msgId)) next.delete(msgId);
+      else next.add(msgId);
+      return next;
+    });
   };
 
   // CSV Upload handler
@@ -152,7 +159,7 @@ export default function Dashboard() {
   const formatHeader = (col: string) =>
     col
       .replace(/_/g, " ")
-      .replace(/([a-z])([A-Z])/g, "$1 $2") // camelCase split
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
       .replace(/\b\w/g, (c) => c.toUpperCase());
 
   // Format cell value: numbers get 2 decimals, text gets title case
@@ -164,9 +171,7 @@ export default function Dashboard() {
       if (Number.isInteger(num)) return num.toLocaleString();
       return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-    // Round long decimals inside text strings (e.g. "Sales: 3115.114292271627" → "Sales: 3115.11")
     const cleaned = s.replace(/(\d+\.\d{3,})/g, (match) => Number(match).toFixed(2));
-    // Title case text values (handles LOWER() from SQL)
     if (cleaned.length > 1 && cleaned === cleaned.toLowerCase()) {
       return cleaned.replace(/\b\w/g, (c) => c.toUpperCase());
     }
@@ -175,9 +180,10 @@ export default function Dashboard() {
 
   const demoFiles = files.filter((f) => f.isDemo);
   const userFiles = files.filter((f) => !f.isDemo);
+  const hasMessages = messages.length > 0 || isAgentActive;
 
   return (
-    <div className="min-h-screen bg-[#0c1929] text-white flex">
+    <div className="h-screen bg-[#0c1929] text-white flex overflow-hidden">
       {/* File Sidebar — hidden on mobile */}
       <aside className="hidden md:flex w-64 bg-[#091320] border-r border-[#1e3a5f]/30 p-4 flex-col">
         <h2 className="text-sm font-semibold text-blue-200/60 uppercase tracking-wider mb-4">
@@ -281,9 +287,57 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Main Content */}
+        {/* Agent Cards — ALWAYS visible, pinned at top */}
+        {hasMessages && (
+          <div className="px-6 py-4 border-b border-[#1e3a5f]/20 relative z-10 bg-[#0c1929]/95 backdrop-blur-sm">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+              {(["schema", "sql", "validator"] as const).map((agent, i) => (
+                <div key={agent} className="flex flex-col md:flex-row items-center gap-4">
+                  <motion.div
+                    variants={agentVariants}
+                    animate={agents[agent].status}
+                    className={`bg-[#111d33] border-2 ${agentColors[agents[agent].status]} rounded-xl p-4 text-center w-44 transition-colors`}
+                  >
+                    <div className="text-2xl mb-1">
+                      {agent === "schema"
+                        ? "🔍"
+                        : agent === "sql"
+                          ? "🔨"
+                          : "✓"}
+                    </div>
+                    <h3 className="font-semibold text-sm mb-1">
+                      {agent === "schema"
+                        ? "Schema Agent"
+                        : agent === "sql"
+                          ? "SQL Agent"
+                          : "Validator Agent"}
+                    </h3>
+                    <p className="text-xs text-blue-200/60 h-8 overflow-hidden">
+                      {agents[agent].message || (
+                        <span className="text-blue-200/30">Waiting...</span>
+                      )}
+                    </p>
+                    {agents[agent].status === "done" && (
+                      <span className="text-green-400 text-xs">Done</span>
+                    )}
+                    {agents[agent].status === "retry" && (
+                      <span className="text-orange-400 text-xs">
+                        Retrying...
+                      </span>
+                    )}
+                  </motion.div>
+                  {i < 2 && (
+                    <span className="text-blue-400/40 text-xl">→</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Main Content — Scrollable chat thread */}
         <div className="flex-1 overflow-y-auto px-6 py-8 relative z-10">
-          {!result && !isAgentActive && !error ? (
+          {!hasMessages ? (
             /* Empty state — show example queries */
             <div className="max-w-2xl mx-auto text-center pt-16">
               <h2 className="text-3xl font-bold mb-2">
@@ -305,162 +359,127 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            /* Agent visualization + results */
+            /* Chat Thread */
             <div className="max-w-4xl mx-auto space-y-6">
-              {/* User Question */}
-              {activeQuestion && (
-                <div className="flex justify-end">
-                  <div className="bg-blue-600/20 border border-blue-500/30 rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%]">
-                    <p className="text-blue-100">{activeQuestion}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Agent Cards */}
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                {(["schema", "sql", "validator"] as const).map((agent, i) => (
-                  <div key={agent} className="flex flex-col md:flex-row items-center gap-4">
-                    <motion.div
-                      variants={agentVariants}
-                      animate={agents[agent].status}
-                      className={`bg-[#111d33] border-2 ${agentColors[agents[agent].status]} rounded-xl p-4 text-center w-44 transition-colors`}
-                    >
-                      <div className="text-2xl mb-1">
-                        {agent === "schema"
-                          ? "🔍"
-                          : agent === "sql"
-                            ? "🔨"
-                            : "✓"}
+              {messages.map((msg) => (
+                <div key={msg.id}>
+                  {msg.role === "user" ? (
+                    /* User question bubble — right aligned */
+                    <div className="flex justify-end">
+                      <div className="bg-blue-600/20 border border-blue-500/30 rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%]">
+                        <p className="text-blue-100">{msg.question}</p>
                       </div>
-                      <h3 className="font-semibold text-sm mb-1">
-                        {agent === "schema"
-                          ? "Schema Agent"
-                          : agent === "sql"
-                            ? "SQL Agent"
-                            : "Validator Agent"}
-                      </h3>
-                      <p className="text-xs text-blue-200/60 h-8 overflow-hidden">
-                        {agents[agent].message || (
-                          <span className="text-blue-200/30">Waiting...</span>
-                        )}
-                      </p>
-                      {agents[agent].status === "done" && (
-                        <span className="text-green-400 text-xs">Done</span>
+                    </div>
+                  ) : (
+                    /* Assistant response — left aligned */
+                    <div className="space-y-3">
+                      {/* Error */}
+                      {msg.error && (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-300 text-sm">
+                          {msg.error}
+                        </div>
                       )}
-                      {agents[agent].status === "retry" && (
-                        <span className="text-orange-400 text-xs">
-                          Retrying...
-                        </span>
-                      )}
-                    </motion.div>
-                    {i < 2 && (
-                      <span className="text-blue-400/40 text-xl">→</span>
-                    )}
-                  </div>
-                ))}
-              </div>
 
-              {/* Loading indicator */}
+                      {/* NL Summary */}
+                      {msg.result?.summary && (
+                        <div className="bg-[#111d33]/80 border border-[#1e3a5f] rounded-xl p-4">
+                          <p className="text-blue-100/90 text-sm leading-relaxed">
+                            {msg.result.summary}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Interactive Chart */}
+                      {msg.result?.chart && (
+                        <div className="bg-[#111d33]/80 border border-[#1e3a5f] rounded-xl p-4 overflow-hidden">
+                          <PlotlyChart config={msg.result.chart} />
+                        </div>
+                      )}
+
+                      {/* Results Table */}
+                      {msg.result && msg.result.rows.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-4 text-sm text-blue-200/60">
+                            <span>
+                              {msg.result.chart && msg.result.rows.length > 10
+                                ? `Showing 10 of ${msg.result.rowCount} rows`
+                                : msg.result.rows.length > 50
+                                  ? `Showing 50 of ${msg.result.rowCount} rows`
+                                  : `${msg.result.rowCount} rows`}
+                              {" "}· Round {msg.result.rounds}/3 ·{" "}
+                              {(msg.result.timing / 1000).toFixed(1)}s
+                            </span>
+                            <button
+                              onClick={() => toggleSql(msg.id)}
+                              className="px-2 py-1 border border-[#1e3a5f] rounded text-xs hover:border-blue-500 transition"
+                            >
+                              {expandedSql.has(msg.id) ? "Hide SQL" : "View SQL"}
+                            </button>
+                          </div>
+
+                          {/* SQL Viewer */}
+                          {expandedSql.has(msg.id) && (
+                            <pre className="bg-[#091320] border border-[#1e3a5f] rounded-lg p-4 text-sm text-blue-200/80 overflow-x-auto">
+                              {msg.result.sql}
+                            </pre>
+                          )}
+
+                          {/* Data Table */}
+                          <div className="overflow-x-auto rounded-lg border border-[#1e3a5f]">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="bg-[#111d33] border-b border-[#1e3a5f]">
+                                  {msg.result.columns.map((col) => (
+                                    <th
+                                      key={col}
+                                      className="px-4 py-3 text-left text-blue-200/80 font-semibold whitespace-nowrap"
+                                    >
+                                      {formatHeader(col)}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {msg.result.rows.slice(0, msg.result.chart ? 10 : 50).map((row, i) => (
+                                  <tr
+                                    key={i}
+                                    className="border-b border-[#1e3a5f]/30 hover:bg-[#111d33]/50"
+                                  >
+                                    {msg.result!.columns.map((col) => (
+                                      <td
+                                        key={col}
+                                        className="px-4 py-2.5 text-blue-100/90 whitespace-nowrap"
+                                      >
+                                        {formatCell(row[col])}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* No results */}
+                      {msg.result && msg.result.rows.length === 0 && !msg.error && (
+                        <div className="text-center text-blue-200/60 py-4">
+                          No results found. Try rephrasing your question.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Loading indicator — shows while agents are working */}
               {isAgentActive && (
-                <div className="flex justify-center">
+                <div className="flex justify-center py-4">
                   <div className="flex gap-1">
                     <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
                     <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.1s]" />
                     <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]" />
                   </div>
-                </div>
-              )}
-
-              {/* Error */}
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-300 text-sm">
-                  {error}
-                </div>
-              )}
-
-              {/* NL Summary */}
-              {result?.summary && (
-                <div className="bg-[#111d33]/80 border border-[#1e3a5f] rounded-xl p-4">
-                  <p className="text-blue-100/90 text-sm leading-relaxed">
-                    {result.summary}
-                  </p>
-                </div>
-              )}
-
-              {/* Results Table */}
-              {result && result.rows.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4 text-sm text-blue-200/60">
-                    <span>
-                      {result.rowCount} rows · Round {result.rounds}/3 ·{" "}
-                      {(result.timing / 1000).toFixed(1)}s
-                    </span>
-                    <button
-                      onClick={() => setShowSql(!showSql)}
-                      className="px-2 py-1 border border-[#1e3a5f] rounded text-xs hover:border-blue-500 transition"
-                    >
-                      {showSql ? "Hide SQL" : "View SQL"}
-                    </button>
-                    <button
-                      onClick={() => {
-                        reset();
-                        setActiveQuestion("");
-                        setShowSql(false);
-                      }}
-                      className="px-2 py-1 border border-[#1e3a5f] rounded text-xs hover:border-blue-500 transition"
-                    >
-                      New Query
-                    </button>
-                  </div>
-
-                  {/* SQL Viewer */}
-                  {showSql && (
-                    <pre className="bg-[#091320] border border-[#1e3a5f] rounded-lg p-4 text-sm text-blue-200/80 overflow-x-auto">
-                      {result.sql}
-                    </pre>
-                  )}
-
-                  {/* Data Table */}
-                  <div className="overflow-x-auto rounded-lg border border-[#1e3a5f]">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-[#111d33] border-b border-[#1e3a5f]">
-                          {result.columns.map((col) => (
-                            <th
-                              key={col}
-                              className="px-4 py-3 text-left text-blue-200/80 font-semibold whitespace-nowrap"
-                            >
-                              {formatHeader(col)}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {result.rows.slice(0, 50).map((row, i) => (
-                          <tr
-                            key={i}
-                            className="border-b border-[#1e3a5f]/30 hover:bg-[#111d33]/50"
-                          >
-                            {result.columns.map((col) => (
-                              <td
-                                key={col}
-                                className="px-4 py-2.5 text-blue-100/90 whitespace-nowrap"
-                              >
-                                {formatCell(row[col])}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* No results */}
-              {result && result.rows.length === 0 && !error && (
-                <div className="text-center text-blue-200/60 py-8">
-                  No results found. Try rephrasing your question.
                 </div>
               )}
 
@@ -472,12 +491,21 @@ export default function Dashboard() {
         {/* Chat Input */}
         <div className="px-6 py-4 border-t border-[#1e3a5f]/30 relative z-10">
           <div className="max-w-3xl mx-auto flex gap-3">
+            {messages.length > 0 && (
+              <button
+                onClick={() => { clearChat(); setExpandedSql(new Set()); }}
+                className="px-3 py-3 border border-[#1e3a5f] rounded-xl text-sm text-blue-200/60 hover:border-red-500/50 hover:text-red-400 transition whitespace-nowrap"
+                title="Clear chat history"
+              >
+                Clear
+              </button>
+            )}
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              placeholder="Ask about your data..."
+              placeholder={messages.length > 0 ? "Ask a follow-up or new question..." : "Ask about your data..."}
               className="flex-1 bg-[#111d33] border border-[#1e3a5f] rounded-xl px-4 py-3 text-white placeholder-blue-200/30 focus:outline-none focus:border-blue-500 transition"
             />
             <button

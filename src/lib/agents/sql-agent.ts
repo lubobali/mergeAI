@@ -1,10 +1,11 @@
 import { callSqlAgent } from "@/lib/nvidia";
-import type { FileSchema, SchemaAnalysis } from "@/lib/types";
+import type { FileSchema, SchemaAnalysis, ConversationContext } from "@/lib/types";
 
 export async function runSqlAgent(
   question: string,
   schemas: FileSchema[],
-  analysis: SchemaAnalysis
+  analysis: SchemaAnalysis,
+  context?: ConversationContext
 ): Promise<string> {
   const fileContext = schemas
     .map(
@@ -12,6 +13,19 @@ export async function runSqlAgent(
         `FILE: ${s.fileName} (file_id = '${s.fileId}')\nCOLUMNS: ${s.columns.join(", ")}\nSAMPLE VALUES: ${JSON.stringify(s.sampleValues)}`
     )
     .join("\n\n");
+
+  // Build follow-up context block (empty if first query in thread)
+  const contextBlock = context
+    ? `
+PREVIOUS CONVERSATION:
+- User asked: "${context.previousQuestion}"
+- SQL that answered it:
+${context.previousSql}
+${context.previousSummary ? `- Result summary: "${context.previousSummary}"` : ""}
+
+If the current question refers to "that", "those", "it", "the same", or asks to filter, modify, drill down, or break down the previous result, build upon the previous SQL by adding/changing WHERE, GROUP BY, or SELECT clauses. Otherwise treat it as a completely new independent query.
+`
+    : "";
 
   const prompt = `You are an expert PostgreSQL query builder. All CSV data is stored in one table: uploaded_rows
 - file_id: UUID (identifies which file)
@@ -32,7 +46,7 @@ Look for ID columns (EmpID, Employee ID, Product_ID, etc.) as the primary join k
 Do NOT join on descriptive columns like Location or Department unless the question specifically asks for it.
 
 ${fileContext}
-
+${contextBlock}
 QUESTION: "${question}"
 
 Return ONLY the raw SQL. No markdown, no backticks, no explanation.`;

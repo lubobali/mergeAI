@@ -50,6 +50,16 @@ export interface AgentEvent {
   data?: Record<string, unknown>;
 }
 
+// Chart configuration for Plotly rendering
+export interface ChartConfig {
+  type: "bar" | "line" | "pie" | "scatter" | "heatmap";
+  title: string;
+  xColumn: string;
+  yColumns: string[];
+  xValues: (string | number)[];
+  series: { name: string; values: number[] }[];
+}
+
 // Query result
 export interface QueryResult {
   columns: string[];
@@ -59,4 +69,22 @@ export interface QueryResult {
   rounds: number;
   timing: number;
   summary?: string;
+  chart?: ChartConfig;
+}
+
+// Chat thread message
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  question: string;
+  result?: QueryResult;
+  error?: string;
+  timestamp: number;
+}
+
+// Follow-up context passed to SQL Agent
+export interface ConversationContext {
+  previousQuestion: string;
+  previousSql: string;
+  previousSummary?: string;
 }

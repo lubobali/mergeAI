@@ -18,8 +18,10 @@
     "next": "15.5.12",
     "openai": "^6.22.0",
     "papaparse": "^5.5.3",
+    "plotly.js-dist-min": "^3.4.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-plotly.js": "^2.6.0",
     "tsx": "^4.21.0"
   },
   "devDependencies": {

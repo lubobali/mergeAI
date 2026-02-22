@@ -1,0 +1,120 @@
+======================================================================
+MergeAI — Chat Thread + Follow-up Questions Plan
+======================================================================
+Date: Feb 22, 2026
+Status: APPROVED — Ready to build
+Research: Confirmed safe by latest 2025-2026 docs
+======================================================================
+
+
+----------------------------------------------------------------------
+WHAT WE'RE BUILDING
+----------------------------------------------------------------------
+
+1. CHAT THREAD — All queries + results stack up like ChatGPT.
+   Previous results NOT deleted. Scroll back to see everything.
+   User question = blue bubble (right). AI result = summary + chart + table (left).
+   Agent cards show for LATEST query only.
+
+2. FOLLOW-UP QUESTIONS — "now filter to Engineering" or "break that
+   down by gender" builds on the previous SQL. Context is automatic —
+   every query carries the previous question + SQL + summary to the
+   253B SQL Agent. The LLM decides if it's a follow-up or independent.
+
+3. "New Query" button removed. "Clear" button wipes the thread.
+   Input always visible at bottom.
+
+
+----------------------------------------------------------------------
+SAFETY RESEARCH (Feb 22, 2026)
+----------------------------------------------------------------------
+
+1. Optional API params: SAFE — existing clients unaffected
+2. Optional TypeScript function params: SAFE — standard trailing optional
+3. SQL in context: LOW RISK — our SELECT-only validator blocks
+   destructive SQL. Previous SQL wrapped in clear delimiters.
+4. Browser memory: SAFE — 20 messages = ~3MB, Chrome handles 4GB
+5. Vercel timeout: SAFE — 400 extra tokens adds <0.5s
+6. Stale closures: Use functional updaters setMessages(prev => ...)
+   + useRef for extra safety. Modern React pattern.
+7. Plotly cleanup: Already have Plotly.purge on unmount. Fine for
+   10-20 charts in a thread.
+
+
+----------------------------------------------------------------------
+FILES TO MODIFY (6 files, build order)
+----------------------------------------------------------------------
+
+1. src/lib/types.ts
+   - Add ChatMessage interface (id, role, question, result?, error?, timestamp)
+   - Add ConversationContext interface (previousQuestion, previousSql, previousSummary?)
+
+2. src/lib/agents/sql-agent.ts
+   - Add optional context?: ConversationContext param
+   - Build contextBlock string from previous Q&A
+   - Insert into 253B prompt before QUESTION line
+   - Context tells model: "If user says that/those/filter/drill down,
+     build on previous SQL. Otherwise treat as new query."
+
+3. src/lib/agents/orchestrator.ts
+   - Add optional context?: ConversationContext param to runAgentPipeline
+   - Pass context to runSqlAgent() call
+   - Everything else stays identical
+
+4. src/app/api/query/route.ts
+   - Destructure context from request body: { question, context }
+   - Pass context to runAgentPipeline()
+   - 2-line change total
+
+5. src/hooks/use-agent-stream.ts — CORE REWRITE
+   Old return: { agents, result, isStreaming, error, runQuery, reset }
+   New return: { agents, messages, isStreaming, runQuery, clearChat }
+
+   Key changes:
+   - messages: ChatMessage[] array instead of single result
+   - messagesRef (useRef) for stale closure safety
+   - runQuery appends user message, auto-builds context from last
+     assistant message, appends assistant message when result arrives
+   - Errors also go into thread as assistant messages
+   - clearChat replaces reset
+
+6. src/app/dashboard/page.tsx — CHAT THREAD UI
+   Remove: activeQuestion state, single showSql state, reset()
+   Add: expandedSql: Set<string> for per-message SQL toggle
+
+   Layout:
+   - Empty state: messages.length === 0 && !isAgentActive
+   - Thread: Map over messages array
+     - role === "user" -> blue bubble (right-aligned)
+     - role === "assistant" -> summary + chart + table (left-aligned)
+   - Agent cards: Show ONLY when isAgentActive (bottom of thread)
+   - "Clear" button next to input when messages exist
+   - Placeholder: "Ask a follow-up or new question..."
+
+
+----------------------------------------------------------------------
+VERIFICATION STEPS
+----------------------------------------------------------------------
+
+1. npm run dev — no build errors
+2. "Compare average training cost by department" -> result shows
+3. Type "now break that down by training type" -> modifies previous SQL
+4. Both results visible in thread — scroll up to see first
+5. Each result has its own "View SQL" toggle (independent)
+6. "Clear" button wipes thread, shows empty state
+7. Charts still render in each message
+8. Agent cards only show for active query, disappear when done
+9. All 5 chart types still work (bar, pie, line, scatter, heatmap)
+
+
+----------------------------------------------------------------------
+RISK: LOW
+----------------------------------------------------------------------
+
+- Backend changes are additive (optional context param)
+- SSE streaming unchanged
+- Agent pipeline (Schema -> SQL -> Validator -> Chart) unchanged
+- Only SQL Agent prompt gains context — all other agents same
+- If context causes bad SQL, validator retries up to 3 rounds
+- If everything fails, results still show (non-blocking pattern)
+======================================================================
