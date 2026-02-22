@@ -18,10 +18,6 @@ Most analytics tools make you drag and drop, write formulas, or learn SQL. Merge
   <img src="screenshots/HomePage.png" alt="MergeAI Landing Page" width="800" />
 </p>
 
-<p align="center">
-  <img src="screenshots/ChatPage.png" alt="MergeAI Dashboard — 3 agents collaborating" width="800" />
-</p>
-
 ---
 
 ## **HOW IT WORKS**
@@ -48,6 +44,10 @@ Results appear in a clean table with a plain English summary:
 > *"Software Engineering has the highest average training cost at $596.71, while Sales has the lowest at $536.76."*
 
 The whole thing takes about 8 seconds.
+
+<p align="center">
+  <img src="screenshots/ChatPage.png" alt="MergeAI Dashboard — 3 agents collaborating" width="800" />
+</p>
 
 ---
 
