@@ -291,12 +291,10 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-[#1e3a5f]/30 py-8 text-center text-blue-200/40 text-sm relative z-10">
         <p>
-          <a
-            href="/architecture.html"
-            className="text-blue-400 hover:underline"
-          >
-            Architecture & Tech Stack →
-          </a>
+          Built with{" "}
+          <span className="text-blue-400 font-semibold">Adal CLI</span>{" "}
+          powered by{" "}
+          <span className="text-[#76b900] font-semibold">NVIDIA</span>
         </p>
         <p className="mt-2">
           Created by{" "}
@@ -314,6 +312,13 @@ export default function LandingPage() {
             target="_blank"
           >
             LuBot.ai
+          </a>
+          {" "}&middot;{" "}
+          <a
+            href="/architecture.html"
+            className="text-blue-400 hover:underline"
+          >
+            Architecture
           </a>
         </p>
       </footer>

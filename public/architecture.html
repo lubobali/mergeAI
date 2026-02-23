@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MergeAI — Architecture & Tech Stack</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(145deg, #0a0e1a 0%, #0c1929 50%, #111d33 100%);
+      color: #e0e0e0;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 40%, #7c3aed 100%);
+      padding: 30px 20px 40px;
+      text-align: center;
+      position: relative;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 30px rgba(37, 99, 235, 0.3);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo-icon {
+      width: 42px;
+      height: 42px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-logo-icon svg { width: 26px; height: 26px; }
+    .header-logo {
+      font-size: 1.8em;
+      font-weight: 800;
+      color: white;
+      text-decoration: none;
+    }
+    .header-logo span { color: #93c5fd; }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.15);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.95em;
+      font-weight: 600;
+      color: white;
+    }
+    .header-badge img {
+      height: 24px;
+    }
+    .header h1 {
+      font-size: 2.8em;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      margin-top: 24px;
+      width: 100%;
+      text-align: center;
+    }
+    .header .subtitle {
+      color: rgba(255,255,255,0.8);
+      font-size: 1.15em;
+      margin-top: 8px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* ── Stats Banner ── */
+    .stats-banner {
+      max-width: 1200px;
+      margin: 30px auto 40px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      padding: 0 20px;
+      position: relative;
+      z-index: 10;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #111d33 0%, #1a2744 100%);
+      border: 1px solid #1e3a5f;
+      border-radius: 12px;
+      padding: 18px 10px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(37, 99, 235, 0.25);
+      border-color: #3b82f6;
+    }
+    .stat-card .number {
+      font-size: 1.8em;
+      font-weight: 800;
+      color: #60a5fa;
+      display: block;
+    }
+    .stat-card .label {
+      font-size: 0.8em;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* ── Sections ── */
+    .section {
+      max-width: 1200px;
+      margin: 0 auto 50px;
+      padding: 0 20px;
+    }
+    .section-title {
+      font-size: 1.6em;
+      color: #60a5fa;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #1e3a5f;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: linear-gradient(135deg, #111d33 0%, #152238 100%);
+      border: 1px solid #1e3a5f;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 16px;
+      transition: all 0.3s;
+    }
+    .card:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
+    }
+    .card-title {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: #93c5fd;
+      margin-bottom: 8px;
+    }
+    .card-subtitle {
+      font-size: 0.9em;
+      color: #60a5fa;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    /* ── Grids ── */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+    /* ── Pipeline Flow ── */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 24px 0;
+    }
+    .pipeline-step {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1a2744 100%);
+      border: 1px solid #3b82f6;
+      border-radius: 10px;
+      padding: 12px 20px;
+      text-align: center;
+      font-weight: 600;
+      color: #93c5fd;
+      font-size: 0.95em;
+    }
+    .pipeline-arrow {
+      color: #3b82f6;
+      font-size: 1.5em;
+      font-weight: 700;
+    }
+
+    /* ── Agent Cards ── */
+    .agents-row-1 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .agents-row-2 {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+    .agents-row-2 .agent-card {
+      width: calc(33.33% - 8px);
+    }
+    .agent-card {
+      background: linear-gradient(145deg, #111d33 0%, #0f1a2e 100%);
+      border: 1px solid #1e3a5f;
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .agent-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(37, 99, 235, 0.2);
+    }
+    .agent-icon {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    .agent-name {
+      font-size: 1.15em;
+      font-weight: 700;
+      color: #93c5fd;
+      margin-bottom: 4px;
+    }
+    .agent-model {
+      display: inline-block;
+      background: #1e3a5f;
+      color: #60a5fa;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: 600;
+      margin: 6px 0;
+    }
+    .agent-desc {
+      color: #94a3b8;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+
+    /* ── Model Cards ── */
+    .model-card {
+      background: linear-gradient(145deg, #0f1a2e 0%, #152238 100%);
+      border: 1px solid #1e3a5f;
+      border-radius: 14px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+    .model-card:hover {
+      border-color: #76b900;
+      box-shadow: 0 4px 20px rgba(118, 185, 0, 0.15);
+    }
+    .model-name {
+      font-size: 1.1em;
+      font-weight: 700;
+      color: #76b900;
+    }
+    .model-params {
+      font-size: 1.8em;
+      font-weight: 800;
+      color: #93c5fd;
+      margin: 4px 0;
+    }
+    .model-use {
+      color: #94a3b8;
+      font-size: 0.9em;
+    }
+
+    /* ── JSONB Schema Diagram ── */
+    .schema-diagram {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0;
+      align-items: stretch;
+      margin: 20px 0;
+    }
+    .schema-table {
+      background: #0a0e1a;
+      border: 2px solid #1e3a5f;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .schema-table-header {
+      background: linear-gradient(135deg, #1e3a5f, #2563eb);
+      padding: 14px 18px;
+      font-weight: 700;
+      font-size: 1.2em;
+      color: white;
+      font-family: monospace;
+    }
+    .schema-table-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 18px;
+      border-bottom: 1px solid #1e3a5f33;
+      font-family: monospace;
+      font-size: 1.02em;
+    }
+    .schema-table-row:last-child { border-bottom: none; }
+    .schema-col-name { color: #93c5fd; font-weight: 600; }
+    .schema-col-type { color: #6b7280; }
+    .schema-col-pk { color: #f59e0b; }
+    .schema-col-fk { color: #a78bfa; }
+    .schema-col-jsonb { color: #34d399; }
+    .schema-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+    }
+    .schema-connector-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #3b82f6;
+      font-size: 0.8em;
+      font-weight: 600;
+    }
+    .schema-connector-line .arrow-line {
+      width: 60px;
+      height: 2px;
+      background: #3b82f6;
+      position: relative;
+    }
+    .schema-connector-line .arrow-line::after {
+      content: '>';
+      position: absolute;
+      right: -6px;
+      top: -9px;
+      font-size: 1.2em;
+    }
+
+    /* ── SQL Safety Grid ── */
+    .safety-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .safety-item {
+      background: #111d33;
+      border: 1px solid #1e3a5f;
+      border-left: 3px solid #3b82f6;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 0.9em;
+    }
+    .safety-item strong { color: #93c5fd; display: block; margin-bottom: 6px; }
+
+    /* ── File Tree ── */
+    .file-tree {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85em;
+      color: #94a3b8;
+      line-height: 1.7;
+      background: #0a0e1a;
+      border: 1px solid #1e3a5f;
+      border-radius: 12px;
+      padding: 24px 28px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .file-tree .dir { color: #60a5fa; font-weight: 600; }
+    .file-tree .file { color: #94a3b8; }
+    .file-tree .hl { color: #34d399; font-weight: 600; }
+    .file-tree .meta { color: #6b7280; font-size: 0.9em; }
+
+    /* ── API endpoints ── */
+    .endpoint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: #0a0e1a;
+      border: 1px solid #1e3a5f44;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.88em;
+      margin-bottom: 6px;
+    }
+    .method {
+      font-weight: 700;
+      font-size: 0.8em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      min-width: 52px;
+      text-align: center;
+    }
+    .method-get { background: #065f46; color: #34d399; }
+    .method-post { background: #1e3a5f; color: #60a5fa; }
+    .endpoint-path { color: #94a3b8; }
+    .endpoint-desc { color: #6b7280; margin-left: auto; font-family: 'Segoe UI', sans-serif; font-size: 0.85em; }
+
+    /* ── Tech stack pills ── */
+    .tech-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-start;
+    }
+    .tech-pill {
+      background: #111d33;
+      border: 1px solid #1e3a5f;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 0.9em;
+      color: #93c5fd;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .tech-pill:hover {
+      border-color: #3b82f6;
+      background: #1e3a5f;
+    }
+    .tech-pill.nvidia { border-color: #76b900; color: #76b900; }
+
+    /* ── Highlight box ── */
+    .highlight-box {
+      background: linear-gradient(135deg, #111d33 0%, #0f1a2e 100%);
+      border: 2px solid #3b82f6;
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+      margin: 24px 0;
+      font-size: 1.05em;
+      line-height: 1.7;
+    }
+    .highlight-box strong { color: #60a5fa; }
+
+    /* ── Footer ── */
+    .footer {
+      max-width: 1200px;
+      margin: 60px auto 0;
+      padding: 40px 20px;
+      border-top: 1px solid #1e3a5f;
+      text-align: center;
+      color: #6b7280;
+    }
+    .footer a { color: #60a5fa; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .footer-logo-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    }
+    .footer-logo-text {
+      font-size: 1.6em;
+      font-weight: 800;
+      color: #e0e0e0;
+    }
+    .footer-logo-text span { color: #60a5fa; }
+    .footer-tagline {
+      color: #94a3b8;
+      font-size: 0.95em;
+      margin-bottom: 16px;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.9em;
+      margin-bottom: 16px;
+    }
+    .footer-links a {
+      color: #60a5fa;
+      padding: 0 8px;
+    }
+    .footer-links .sep { color: #334155; }
+    .footer-nvidia {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #76b900;
+      font-weight: 600;
+      font-size: 0.9em;
+      margin-bottom: 16px;
+    }
+    .footer-stats {
+      color: #4b5563;
+      font-size: 0.8em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .stats-banner { grid-template-columns: repeat(4, 1fr); }
+      .safety-grid { grid-template-columns: repeat(2, 1fr); }
+      .schema-diagram { grid-template-columns: 1fr; }
+      .schema-connector { padding: 12px 0; }
+      .schema-connector-line .arrow-line { width: 2px; height: 30px; }
+      .schema-connector-line .arrow-line::after { content: 'v'; right: -4px; top: auto; bottom: -10px; }
+    }
+    @media (max-width: 768px) {
+      .header h1 { font-size: 1.8em; }
+      .header-inner { flex-wrap: wrap; justify-content: center; gap: 12px; }
+      .stats-banner { grid-template-columns: repeat(2, 1fr); }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .agents-row-1 { grid-template-columns: 1fr; }
+      .agents-row-2 { flex-direction: column; }
+      .agents-row-2 .agent-card { width: 100%; }
+      .pipeline { flex-direction: column; }
+      .pipeline-arrow { transform: rotate(90deg); }
+      .safety-grid { grid-template-columns: 1fr; }
+      .file-tree { font-size: 0.75em; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- HEADER                                                 -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <img src="/logo.png" alt="LB" style="height: 44px; border-radius: 8px;">
+        <a href="/" class="header-logo"><span>Merge</span>AI</a>
+      </div>
+      <div class="header-right">
+        <div class="header-badge">
+          <img src="/sylphai_logo.jpeg" alt="Adal" style="height: 24px; border-radius: 4px;">
+          Adal CLI
+        </div>
+        <div class="header-badge" style="height: 40px; overflow: hidden;">
+          <img src="/nvidia-logo-horz.png" alt="NVIDIA" style="height: 56px; margin: -8px 0;">
+        </div>
+      </div>
+    </div>
+    <h1>Architecture & Tech Stack</h1>
+    <p class="subtitle">How 5 AI agents, 2 NVIDIA models, and real PostgreSQL turn spreadsheets into answers</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- STATS BANNER — ALL 7 IN ONE ROW                        -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="stats-banner">
+    <div class="stat-card">
+      <span class="number">3,956</span>
+      <span class="label">Lines of TypeScript</span>
+    </div>
+    <div class="stat-card">
+      <span class="number">30</span>
+      <span class="label">TypeScript Files</span>
+    </div>
+    <div class="stat-card">
+      <span class="number">5</span>
+      <span class="label">AI Agents</span>
+    </div>
+    <div class="stat-card">
+      <span class="number">4</span>
+      <span class="label">API Endpoints</span>
+    </div>
+    <div class="stat-card">
+      <span class="number">2</span>
+      <span class="label">Database Tables</span>
+    </div>
+    <div class="stat-card">
+      <span class="number">3</span>
+      <span class="label">React Components</span>
+    </div>
+    <div class="stat-card">
+      <span class="number">16</span>
+      <span class="label">Dependencies</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- REQUEST FLOW                                           -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">Request Flow — From Question to Answer</h2>
+    <p style="color:#94a3b8; margin-bottom: 16px;">Every question flows through a self-correcting pipeline. If the Validator catches an error, the entire pipeline retries — up to 3 rounds — automatically.</p>
+    <div class="pipeline">
+      <div class="pipeline-step">User Question</div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step" style="border-color: #76b900;">Schema Agent<br><small style="color:#76b900;">Nano 8B</small></div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step" style="border-color: #a78bfa;">SQL Agent<br><small style="color:#a78bfa;">Ultra 253B</small></div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step">Execute on Neon</div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step" style="border-color: #f59e0b;">Validator Agent<br><small style="color:#f59e0b;">Deterministic</small></div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step" style="border-color: #76b900;">Summary Agent<br><small style="color:#76b900;">Nano 8B</small></div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step" style="border-color: #76b900;">Chart Agent<br><small style="color:#76b900;">Nano 8B</small></div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step">Results + Chart</div>
+    </div>
+
+    <div class="highlight-box">
+      <strong>Self-Correcting Loop:</strong> If the Validator detects errors (bad SQL, high null %, zero rows), it sends feedback to the Schema + SQL agents and the pipeline retries. Up to <strong>3 rounds</strong> — no human intervention needed.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 5 AI AGENTS — Row of 3, then centered row of 2        -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">5 AI Agents — Orchestrated Pipeline</h2>
+    <p style="color:#94a3b8; margin-bottom: 20px;">Each agent is a specialist. The Orchestrator coordinates them in sequence, streaming real-time progress events to the frontend via SSE (Server-Sent Events).</p>
+
+    <!-- Row 1: 3 agents -->
+    <div class="agents-row-1">
+      <div class="agent-card">
+        <div class="agent-icon">&#128269;</div>
+        <div class="agent-name">Schema Agent</div>
+        <div class="agent-model">Nemotron Nano 8B</div>
+        <div class="agent-desc">Analyzes file schemas, discovers join keys between files, identifies metrics and dimensions. Decides if query needs 1 file or cross-file join.</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">&#128296;</div>
+        <div class="agent-name">SQL Agent</div>
+        <div class="agent-model">Nemotron Ultra 253B</div>
+        <div class="agent-desc">Generates production-grade SQL with CTEs, JSONB extraction, type casting, and cross-file JOINs. Handles follow-up context for conversational queries.</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">&#10003;</div>
+        <div class="agent-name">Validator Agent</div>
+        <div class="agent-model">Deterministic</div>
+        <div class="agent-desc">Checks SQL results for errors: zero rows, high null percentages, SQL exceptions. Sends fix suggestions back to Schema + SQL agents for retry.</div>
+      </div>
+    </div>
+
+    <!-- Row 2: 2 agents centered -->
+    <div class="agents-row-2">
+      <div class="agent-card">
+        <div class="agent-icon">&#128172;</div>
+        <div class="agent-name">Summary Agent</div>
+        <div class="agent-model">Nemotron Nano 8B</div>
+        <div class="agent-desc">Converts query results into a natural language summary. "Engineering department has the highest avg salary at $142K, followed by Sales at $118K."</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">&#128202;</div>
+        <div class="agent-name">Chart Agent</div>
+        <div class="agent-model">Nano 8B + Deterministic</div>
+        <div class="agent-desc">Selects optimal chart type using keyword detection (deterministic) with LLM fallback. Generates Plotly.js configs for bar, line, pie, scatter, and heatmap.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- NVIDIA MODELS                                          -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">NVIDIA Models — NIM API</h2>
+    <p style="color:#94a3b8; margin-bottom: 20px;">All inference runs through NVIDIA NIM API using the OpenAI-compatible SDK. Zero self-hosted GPU — pure cloud inference with enterprise reliability.</p>
+    <div class="grid-2">
+      <div class="model-card">
+        <div class="model-name">NVIDIA Nemotron Ultra</div>
+        <div class="model-params">253B</div>
+        <div class="model-use"><strong>SQL Agent</strong> — Most capable model for production-grade SQL generation. Uses "detailed thinking off" mode for clean output without &lt;think&gt; tags. Temperature 0 for deterministic results.</div>
+      </div>
+      <div class="model-card">
+        <div class="model-name">NVIDIA Nemotron Nano</div>
+        <div class="model-params">8B</div>
+        <div class="model-use"><strong>Schema Agent, Summary Agent, Chart Agent</strong> — Fast, structured output for schema analysis, natural language summaries, and chart type selection. 3 agents share this model for low-latency responses.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- CROSS-FILE JOINS                                       -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">Cross-File Joins — "The Merge in MergeAI"</h2>
+    <div class="highlight-box">
+      Upload 2+ spreadsheets with different columns. Ask a question that spans both. MergeAI automatically discovers the join key and builds a cross-file SQL query.<br><br>
+      <strong>Example:</strong> Upload employees.csv (names, departments, salaries) + training_data.csv (departments, training costs, outcomes).<br>
+      Ask: "Compare average salary vs training cost by department" &mdash; MergeAI joins on Department automatically.
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Schema Agent: Join Discovery</div>
+        <div class="card-subtitle">AI-Powered (Nano 8B)</div>
+        <p style="color:#94a3b8;">Compares column names, types, and sample values across files. Detects exact matches (Employee_ID = Employee_ID), fuzzy matches (Dept = Department), and case-insensitive matches. Returns confidence score and match type.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Visual Schema Map: Join Preview</div>
+        <div class="card-subtitle">Client-Side (React Flow)</div>
+        <p style="color:#94a3b8;">Interactive diagram showing files as draggable nodes with column lists. Detected join keys shown as color-coded edges. Uses client-side name matching for instant preview. Columns categorized: metrics, dimensions, dates, identifiers.</p>
+      </div>
+    </div>
+
+    <div class="pipeline" style="margin-top: 20px;">
+      <div class="pipeline-step">File A: employees.csv</div>
+      <span class="pipeline-arrow" style="color:#34d399;">&harr;</span>
+      <div class="pipeline-step" style="border-color:#34d399; color:#34d399;">Department &harr; Dept<br><small>fuzzy match (82%)</small></div>
+      <span class="pipeline-arrow" style="color:#34d399;">&harr;</span>
+      <div class="pipeline-step">File B: training_data.csv</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- JSONB STORAGE — VISUAL DIAGRAM                         -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">JSONB Storage — Schema-Less Architecture</h2>
+    <p style="color:#94a3b8; margin-bottom: 20px;">Unlike traditional approaches that create a new SQL table per upload, MergeAI stores ALL data in a single JSONB column. Any CSV/Excel structure is supported — zero schema migrations.</p>
+
+    <div class="schema-diagram">
+      <!-- Table 1: uploaded_files -->
+      <div class="schema-table">
+        <div class="schema-table-header">uploaded_files</div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">id</span>
+          <span><span class="schema-col-pk">PK</span> <span class="schema-col-type">UUID</span></span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">user_id</span>
+          <span class="schema-col-type">VARCHAR</span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">file_name</span>
+          <span class="schema-col-type">VARCHAR</span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">columns</span>
+          <span class="schema-col-jsonb">JSONB string[]</span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">column_types</span>
+          <span class="schema-col-jsonb">JSONB {col: type}</span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">sample_values</span>
+          <span class="schema-col-jsonb">JSONB {col: vals[]}</span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">row_count</span>
+          <span class="schema-col-type">INTEGER</span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">is_demo</span>
+          <span class="schema-col-type">BOOLEAN</span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">created_at</span>
+          <span class="schema-col-type">TIMESTAMP</span>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div class="schema-connector">
+        <div class="schema-connector-line">
+          <span>1</span>
+          <div class="arrow-line"></div>
+          <span>N</span>
+          <span style="font-size:0.75em; color:#6b7280;">CASCADE</span>
+        </div>
+      </div>
+
+      <!-- Table 2: uploaded_rows -->
+      <div class="schema-table">
+        <div class="schema-table-header">uploaded_rows</div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">id</span>
+          <span><span class="schema-col-pk">PK</span> <span class="schema-col-type">BIGSERIAL</span></span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">file_id</span>
+          <span><span class="schema-col-fk">FK</span> <span class="schema-col-type">UUID</span></span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">user_id</span>
+          <span class="schema-col-type">VARCHAR</span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name">row_data</span>
+          <span class="schema-col-jsonb">JSONB {col: value}</span>
+        </div>
+        <div class="schema-table-row" style="border-top: 1px solid #1e3a5f; margin-top: 8px; padding-top: 10px;">
+          <span style="color:#6b7280; font-size:0.85em;">Indexes</span>
+          <span></span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name" style="font-size:0.8em;">idx_rows_file</span>
+          <span class="schema-col-type">(file_id)</span>
+        </div>
+        <div class="schema-table-row">
+          <span class="schema-col-name" style="font-size:0.8em;">idx_rows_user</span>
+          <span class="schema-col-type">(user_id)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <strong>How SQL Queries Work on JSONB:</strong><br>
+      <code style="color:#60a5fa; font-size: 0.95em;">SELECT row_data->>'Department' AS dept, AVG((row_data->>'Salary')::numeric) AS avg_salary<br>FROM uploaded_rows WHERE file_id = '...' GROUP BY 1</code><br><br>
+      The SQL Agent generates JSONB extraction (<code style="color:#60a5fa;">row_data->>'column'</code>) with type casts (<code style="color:#60a5fa;">::numeric</code>) for aggregations. All queries are read-only — write operations are blocked.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- SQL SAFETY LAYER — 3x2 Grid                           -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">SQL Safety Layer — Defense in Depth</h2>
+    <p style="color:#94a3b8; margin-bottom: 16px;">AI generates SQL. That's dangerous without guardrails. MergeAI validates every query through a 6-layer safety system before execution.</p>
+    <div class="safety-grid">
+      <div class="safety-item">
+        <strong>Read-Only Allowlist</strong>
+        Only SELECT and WITH (CTEs) are allowed. Everything else is rejected.
+      </div>
+      <div class="safety-item">
+        <strong>Keyword Blocklist</strong>
+        INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, CREATE, GRANT, REVOKE, COPY, EXECUTE — blocked.
+      </div>
+      <div class="safety-item">
+        <strong>Anti-Injection</strong>
+        Semicolons in mid-query blocked. No multi-statement injection. Trailing semicolons stripped.
+      </div>
+      <div class="safety-item">
+        <strong>Row Limit Cap</strong>
+        Auto-appends LIMIT 200 to any query missing a LIMIT clause. Prevents full-table scans.
+      </div>
+      <div class="safety-item">
+        <strong>10s Query Timeout</strong>
+        AbortController kills any query over 10 seconds. Neon HTTP driver is stateless.
+      </div>
+      <div class="safety-item">
+        <strong>Upload Limits</strong>
+        10MB max file size, 10,000 max rows, 50 max columns. Enforced client-side and server-side.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- REAL-TIME STREAMING                                    -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">Real-Time Agent Streaming — SSE Protocol</h2>
+    <p style="color:#94a3b8; margin-bottom: 16px;">Users see every agent thinking live. Each step animates in the UI as it happens — not after.</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Server: SSE Event Stream</div>
+        <p style="color:#94a3b8;">The <code style="color:#60a5fa;">/api/query</code> endpoint returns a <code style="color:#60a5fa;">ReadableStream</code> with <code style="color:#60a5fa;">text/event-stream</code> content type. Each agent event is sent as <code style="color:#60a5fa;">data: {JSON}\n\n</code> — standard SSE format.</p>
+        <div style="margin-top: 12px; font-family: monospace; font-size: 0.85em; color: #6b7280;">
+          Event types:<br>
+          &bull; agent_start &mdash; Agent begins work<br>
+          &bull; agent_progress &mdash; Intermediate status<br>
+          &bull; agent_complete &mdash; Agent finished<br>
+          &bull; round_retry &mdash; Validator requested retry<br>
+          &bull; query_complete &mdash; Final results<br>
+          &bull; query_error &mdash; Pipeline failed
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Client: useAgentStream Hook</div>
+        <p style="color:#94a3b8;">Custom React hook (<code style="color:#60a5fa;">use-agent-stream.ts</code>, 156 lines) consumes SSE events via <code style="color:#60a5fa;">fetch()</code> with a <code style="color:#60a5fa;">ReadableStream</code> reader. Parses each event and updates React state. Agent cards animate between states.</p>
+        <div style="margin-top: 12px; font-family: monospace; font-size: 0.85em; color: #6b7280;">
+          UI states per agent:<br>
+          &bull; Waiting (gray, pulsing dot)<br>
+          &bull; Active (blue, spinning ring)<br>
+          &bull; Done (green check, status text)<br>
+          &bull; Error (red, error message)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- SMART FEATURES                                         -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">Smart Features</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Interactive Plotly Charts</div>
+        <p style="color:#94a3b8;">Chart Agent picks the right chart type. Supports bar, line, pie, scatter, and heatmap. Rendered with Plotly.js — hover tooltips, zoom, pan, PNG download. Dark theme.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">AI-Suggested Queries</div>
+        <p style="color:#94a3b8;">Suggestion engine analyzes columns by category (metrics, dimensions, dates) using actual data types. Generates 3-5 smart questions. Cross-file suggestions prioritized.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Follow-Up Context</div>
+        <p style="color:#94a3b8;">Chat threads maintain conversation history. "Now break that down by gender" — SQL Agent modifies the previous query instead of starting from scratch.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Data Preview Modal</div>
+        <p style="color:#94a3b8;">Click any file to see first 20 rows. Color-coded column headers by type: numbers (blue), dates (purple), text (gray). Sticky headers, horizontal scroll.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Excel & CSV Upload</div>
+        <p style="color:#94a3b8;">Upload .xlsx, .xls, or .csv files. Excel parsed client-side with SheetJS (dynamic import for bundle optimization). Auto type inference from first 20 rows.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Export Results (Excel & CSV)</div>
+        <p style="color:#94a3b8;">Download query results as Excel or CSV. CSV uses pure string manipulation. Excel uses SheetJS. Both run client-side — zero server involvement.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- API ENDPOINTS                                          -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">API Endpoints (4 Routes)</h2>
+    <div class="endpoint">
+      <span class="method method-post">POST</span>
+      <span class="endpoint-path">/api/query</span>
+      <span class="endpoint-desc">Run agent pipeline — returns SSE stream with live agent events + results</span>
+    </div>
+    <div class="endpoint">
+      <span class="method method-post">POST</span>
+      <span class="endpoint-path">/api/upload</span>
+      <span class="endpoint-desc">Upload file — receives JSON (columns, types, rows), stores in Neon JSONB</span>
+    </div>
+    <div class="endpoint">
+      <span class="method method-get">GET</span>
+      <span class="endpoint-path">/api/files</span>
+      <span class="endpoint-desc">List user's files — returns file metadata (columns, types, sample values)</span>
+    </div>
+    <div class="endpoint">
+      <span class="method method-get">GET</span>
+      <span class="endpoint-path">/api/files/[id]/preview</span>
+      <span class="endpoint-desc">Preview file data — returns first 20 rows with ownership verification</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- PROJECT STRUCTURE — Proper vertical tree               -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">Project Structure (30 TypeScript Files)</h2>
+    <div class="file-tree"><span class="dir">src/</span>
+<span class="dir">├── app/</span>
+<span class="dir">│   ├── api/</span>
+<span class="dir">│   │   ├── query/</span>
+│   │   │   └── <span class="hl">route.ts</span>              <span class="meta">89 lines — SSE agent pipeline</span>
+<span class="dir">│   │   ├── upload/</span>
+│   │   │   └── <span class="hl">route.ts</span>              <span class="meta">91 lines — JSONB file storage</span>
+<span class="dir">│   │   └── files/</span>
+│   │       ├── <span class="hl">route.ts</span>              <span class="meta">43 lines — file listing</span>
+<span class="dir">│   │       └── [id]/preview/</span>
+│   │           └── <span class="hl">route.ts</span>          <span class="meta">62 lines — data preview</span>
+<span class="dir">│   ├── dashboard/</span>
+│   │   └── <span class="hl">page.tsx</span>                  <span class="meta">1,077 lines — main app UI</span>
+│   ├── <span class="file">page.tsx</span>                      <span class="meta">322 lines — landing page</span>
+│   ├── <span class="file">layout.tsx</span>                    <span class="meta">root layout + Clerk provider</span>
+│   ├── <span class="file">loading.tsx</span>                   <span class="meta">loading state</span>
+│   ├── <span class="file">globals.css</span>                   <span class="meta">Tailwind + animations</span>
+<span class="dir">│   ├── settings/</span>
+│   │   └── <span class="file">page.tsx</span>                  <span class="meta">settings page</span>
+<span class="dir">│   ├── sign-in/</span>
+│   │   └── <span class="file">page.tsx</span>                  <span class="meta">Clerk auth</span>
+<span class="dir">│   └── sign-up/</span>
+│       └── <span class="file">page.tsx</span>                  <span class="meta">Clerk auth</span>
+<span class="dir">├── lib/</span>
+<span class="dir">│   ├── agents/</span>
+│   │   ├── <span class="hl">orchestrator.ts</span>          <span class="meta">203 lines — agent coordination + retry loop</span>
+│   │   ├── <span class="hl">schema-agent.ts</span>          <span class="meta">75 lines — join key discovery</span>
+│   │   ├── <span class="hl">sql-agent.ts</span>             <span class="meta">74 lines — SQL generation + follow-up</span>
+│   │   ├── <span class="hl">validator-agent.ts</span>       <span class="meta">62 lines — result validation + fix</span>
+│   │   ├── <span class="hl">chart-agent.ts</span>           <span class="meta">225 lines — chart type selection</span>
+│   │   └── <span class="hl">summary-agent.ts</span>         <span class="meta">22 lines — NL summary generation</span>
+│   ├── <span class="hl">db.ts</span>                        <span class="meta">96 lines — Neon connection + SQL safety</span>
+│   ├── <span class="hl">nvidia.ts</span>                    <span class="meta">54 lines — NVIDIA NIM API via OpenAI SDK</span>
+│   ├── <span class="hl">types.ts</span>                     <span class="meta">90 lines — TypeScript interfaces</span>
+│   ├── <span class="hl">join-detector.ts</span>             <span class="meta">264 lines — client-side join detection</span>
+│   ├── <span class="hl">suggestion-engine.ts</span>         <span class="meta">239 lines — AI-suggested queries</span>
+│   └── <span class="file">session.ts</span>                   <span class="meta">16 lines — per-browser UUID</span>
+<span class="dir">├── components/</span>
+│   ├── <span class="hl">SchemaMap.tsx</span>                <span class="meta">256 lines — React Flow diagram</span>
+│   ├── <span class="hl">PlotlyChart.tsx</span>              <span class="meta">153 lines — Plotly.js rendering</span>
+│   └── <span class="hl">DataPreview.tsx</span>              <span class="meta">129 lines — file preview modal</span>
+<span class="dir">├── hooks/</span>
+│   └── <span class="hl">use-agent-stream.ts</span>          <span class="meta">156 lines — SSE consumer + state</span>
+<span class="dir">└── drizzle/</span>
+    └── <span class="hl">schema.ts</span>                    <span class="meta">41 lines — Drizzle ORM definitions</span></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- TECH STACK                                             -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">Tech Stack</h2>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">Frontend</div>
+        <div class="tech-pills">
+          <span class="tech-pill">Next.js 15</span>
+          <span class="tech-pill">React 19</span>
+          <span class="tech-pill">TypeScript</span>
+          <span class="tech-pill">Tailwind CSS 4</span>
+          <span class="tech-pill">Framer Motion</span>
+          <span class="tech-pill">React Flow</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">AI & Data</div>
+        <div class="tech-pills">
+          <span class="tech-pill nvidia">NVIDIA NIM API</span>
+          <span class="tech-pill">OpenAI SDK</span>
+          <span class="tech-pill">Plotly.js</span>
+          <span class="tech-pill">SheetJS</span>
+          <span class="tech-pill">PapaParse</span>
+          <span class="tech-pill">csv-parse</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Backend & Infra</div>
+        <div class="tech-pills">
+          <span class="tech-pill">Neon PostgreSQL</span>
+          <span class="tech-pill">Drizzle ORM</span>
+          <span class="tech-pill">Clerk Auth</span>
+          <span class="tech-pill">Vercel</span>
+          <span class="tech-pill">SSE Streaming</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- BUILT WITH ADAL CLI                                    -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <h2 class="section-title">Built with Adal CLI</h2>
+    <div class="highlight-box">
+      MergeAI was scaffolded and developed using <strong>Adal CLI</strong> — a developer productivity tool for rapid AI application development. Adal CLI provided the project structure, deployment pipeline, and development workflow that made it possible to build a 5-agent, cross-file analytics platform in a single hackathon weekend.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- FOOTER — LuBot style                                   -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="footer">
+    <!-- Logo -->
+    <div class="footer-logo">
+      <img src="/logo.png" alt="LB" style="height: 50px; border-radius: 10px;">
+    </div>
+
+    <!-- Tagline -->
+    <div class="footer-tagline">
+      <span style="font-size:1.4em; font-weight:800;"><span style="color:#60a5fa;">Merge</span><span style="color:#e0e0e0;">AI</span></span>
+      <br>
+      AI Data Analyst &mdash; Upload. Ask. Watch AI Think.
+    </div>
+
+    <!-- Links -->
+    <div class="footer-links">
+      <a href="https://www.lubobali.com" target="_blank">LuboBali.com</a>
+      <span class="sep">|</span>
+      <a href="https://lubot.ai" target="_blank">LuBot.ai</a>
+      <span class="sep">|</span>
+      <a href="https://github.com/lubobali/mergeAI" target="_blank">GitHub</a>
+      <span class="sep">|</span>
+      <a href="https://www.linkedin.com/in/lubo-bali/" target="_blank">LinkedIn</a>
+    </div>
+
+    <!-- Built with / Powered by -->
+    <div class="footer-nvidia">
+      Built with <strong style="color:#60a5fa;">Adal CLI</strong>
+      &nbsp;&bull;&nbsp;
+      Powered by <strong style="color:#76b900;">NVIDIA</strong>
+    </div>
+
+    <!-- Stats -->
+    <div class="footer-stats">
+      3,956 Lines of Code &bull; 30 Files &bull; 2 Tables &bull; 5 AI Agents &bull; 2 NVIDIA Models
+    </div>
+  </div>
+
+</body>
+</html>
