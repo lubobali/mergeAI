@@ -134,12 +134,10 @@ GROUP BY dept ORDER BY avg_training_cost DESC;
 
 Five chart types generated automatically based on your query — bar, pie, line, scatter, and heatmap:
 
-<p align="center">
-  <img src="screenshots/chart-heatmap.png" alt="Heatmap — training cost by department and type" width="800" />
-</p>
+**Heatmap — Average Training Cost by Department and Training Type:**
 
 <p align="center">
-  <img src="screenshots/chart-line.png" alt="Line chart — training cost trend over time" width="800" />
+  <img src="screenshots/chart-heatmap.png" alt="Heatmap — Average Training Cost by Department and Training Type" width="800" />
 </p>
 
 ### Real-Time Agent Visualization (SSE + Framer Motion)
@@ -151,6 +149,12 @@ idle → active (pulsing blue) → done (green) → or retry (orange) → back t
 ```
 
 AG-UI Protocol event naming: `agent_start`, `agent_complete`, `round_retry`, `query_complete`.
+
+**Line Chart — Average Training Cost by Month:**
+
+<p align="center">
+  <img src="screenshots/chart-line.png" alt="Line Chart — Average Training Cost by Month" width="800" />
+</p>
 
 ---
 
