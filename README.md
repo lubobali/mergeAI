@@ -47,12 +47,14 @@ Here's what happens — and you watch it happen live:
 
 Results appear in a clean table with a plain English summary:
 
-> *"Software Engineering has the highest average training cost at $596.71, while Sales has the lowest at $536.76."*
+> *"The data shows a distribution of training outcomes, with the most frequent being 'Incomplete' at 775 instances, followed by 'Completed' at 770, 'Passed' at 739, and the least frequent being 'Failed' at 716."*
 
 The whole thing takes about 8 seconds.
 
+**Pie Chart** — Training Outcome Distribution:
+
 <p align="center">
-  <img src="screenshots/dashboard-agents.png" alt="MergeAI Dashboard — 3 agents collaborating with pie chart" width="800" />
+  <img src="screenshots/dashboard-agents.png" alt="MergeAI Dashboard — pie chart with 3 agents done" width="800" />
 </p>
 
 ---
