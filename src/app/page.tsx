@@ -59,7 +59,9 @@ export default function LandingPage() {
           </h1>
           <p className="text-xl text-blue-100/90 max-w-2xl mx-auto mb-4">
             Your AI data analyst. Upload spreadsheets, ask anything in plain
-            English. 3 AI agents discover how your data connects — and show you
+            English.
+            <br />
+            3 AI agents discover how your data connects — and show you
             exactly how they think.
           </p>
           <p className="text-sm text-blue-200/40 mb-10">
@@ -171,7 +173,7 @@ export default function LandingPage() {
             },
             {
               icon: "⬇️",
-              title: "Export Results",
+              title: "Export Results Excel & CSV",
               desc: "Download query results as Excel or CSV. Take your insights anywhere.",
             },
             {
@@ -189,8 +191,8 @@ export default function LandingPage() {
               className="bg-[#111d33]/70 border border-[#1e3a5f]/50 rounded-xl p-5"
             >
               <div className="text-2xl mb-2">{item.icon}</div>
-              <h3 className="font-semibold mb-1 text-sm">{item.title}</h3>
-              <p className="text-xs text-blue-200/60 leading-relaxed">{item.desc}</p>
+              <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+              <p className="text-sm text-blue-200/60 leading-relaxed">{item.desc}</p>
             </motion.div>
           ))}
         </div>
