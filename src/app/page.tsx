@@ -15,6 +15,12 @@ export default function LandingPage() {
           <span className="text-blue-400">Merge</span>AI
         </div>
         <div className="flex gap-4">
+          <a
+            href="/architecture.html"
+            className="px-4 py-2 text-sm text-blue-100/70 hover:text-white transition"
+          >
+            Architecture
+          </a>
           <SignedOut>
             <Link
               href="/sign-in"
