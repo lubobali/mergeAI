@@ -162,8 +162,8 @@ export default function Dashboard() {
     });
   };
 
-  // CSV Upload handler — with size/row/column limits (LuBot pattern)
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload handler — Excel & CSV with size/row/column limits
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadError(null);
@@ -176,81 +176,142 @@ export default function Dashboard() {
     }
 
     setUploading(true);
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        const rows = results.data as Record<string, string>[];
-        if (rows.length === 0) {
-          setUploading(false);
-          return;
-        }
+    const ext = file.name.split(".").pop()?.toLowerCase();
 
-        const columns = Object.keys(rows[0]);
+    // Parse file — Excel or CSV
+    let rows: Record<string, string>[];
+    let columns: string[];
 
-        // Gate 2: Row count check
-        if (rows.length > MAX_ROWS) {
-          setUploadError(`Too many rows (${rows.length.toLocaleString()}). Maximum is ${MAX_ROWS.toLocaleString()} rows.`);
-          setUploading(false);
-          return;
-        }
-
-        // Gate 3: Column count check
-        if (columns.length > MAX_COLUMNS) {
-          setUploadError(`Too many columns (${columns.length}). Maximum is ${MAX_COLUMNS} columns.`);
-          setUploading(false);
-          return;
-        }
-
-        const columnTypes: Record<string, string> = {};
-        const sampleValues: Record<string, string[]> = {};
-
-        for (const col of columns) {
-          sampleValues[col] = rows
-            .slice(0, 5)
-            .map((r) => r[col])
-            .filter(Boolean);
-          const testVals = rows.slice(0, 20).map((r) => r[col]);
-          const allNum = testVals.every(
-            (v) => !v || !isNaN(Number(v.replace(/[,$]/g, "")))
-          );
-          columnTypes[col] = allNum ? "number" : "text";
-        }
-
-        try {
-          const res = await fetch("/api/upload", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-session-id": getSessionId(),
-            },
-            body: JSON.stringify({
-              fileName: file.name,
-              columns,
-              columnTypes,
-              sampleValues,
-              rows,
-            }),
+    try {
+      if (ext === "xlsx" || ext === "xls") {
+        // ── Excel path (dynamic import — only loads when needed) ──
+        const XLSX = await import("xlsx");
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, {
+          defval: "",
+          raw: false,
+        });
+        columns = rows.length > 0 ? Object.keys(rows[0]) : [];
+      } else {
+        // ── CSV path (PapaParse — unchanged) ──
+        const parsed = await new Promise<Record<string, string>[]>((resolve) => {
+          Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => resolve(results.data as Record<string, string>[]),
           });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({ error: "Upload failed" }));
-            setUploadError(err.error || "Upload failed");
-            setUploading(false);
-            return;
-          }
-          const newFile = await res.json();
-          setFiles((prev) => [...prev, newFile]);
-        } catch (err) {
-          console.error("Upload failed:", err);
-          setUploadError("Upload failed — please try again.");
-        }
-        setUploading(false);
-      },
-    });
+        });
+        rows = parsed;
+        columns = rows.length > 0 ? Object.keys(rows[0]) : [];
+      }
+    } catch (err) {
+      console.error("Parse error:", err);
+      setUploadError("Failed to parse file. Please check the format.");
+      setUploading(false);
+      e.target.value = "";
+      return;
+    }
 
-    // Reset input
+    if (rows.length === 0) {
+      setUploadError("File is empty — no rows found.");
+      setUploading(false);
+      e.target.value = "";
+      return;
+    }
+
+    // Gate 2: Row count check
+    if (rows.length > MAX_ROWS) {
+      setUploadError(`Too many rows (${rows.length.toLocaleString()}). Maximum is ${MAX_ROWS.toLocaleString()} rows.`);
+      setUploading(false);
+      e.target.value = "";
+      return;
+    }
+
+    // Gate 3: Column count check
+    if (columns.length > MAX_COLUMNS) {
+      setUploadError(`Too many columns (${columns.length}). Maximum is ${MAX_COLUMNS} columns.`);
+      setUploading(false);
+      e.target.value = "";
+      return;
+    }
+
+    // Type detection + sample values — same for both formats
+    const columnTypes: Record<string, string> = {};
+    const sampleValues: Record<string, string[]> = {};
+
+    for (const col of columns) {
+      sampleValues[col] = rows
+        .slice(0, 5)
+        .map((r) => r[col])
+        .filter(Boolean);
+      const testVals = rows.slice(0, 20).map((r) => r[col]);
+      const allNum = testVals.every(
+        (v) => !v || !isNaN(Number(v.replace(/[,$]/g, "")))
+      );
+      columnTypes[col] = allNum ? "number" : "text";
+    }
+
+    // Upload to backend — same JSON regardless of source format
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-session-id": getSessionId(),
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          columns,
+          columnTypes,
+          sampleValues,
+          rows,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Upload failed" }));
+        setUploadError(err.error || "Upload failed");
+        setUploading(false);
+        e.target.value = "";
+        return;
+      }
+      const newFile = await res.json();
+      setFiles((prev) => [...prev, newFile]);
+    } catch (err) {
+      console.error("Upload failed:", err);
+      setUploadError("Upload failed — please try again.");
+    }
+    setUploading(false);
     e.target.value = "";
   };
+
+  // Download results as CSV
+  const downloadCSV = useCallback((columns: string[], rows: Record<string, unknown>[]) => {
+    const header = columns.join(",");
+    const csvRows = rows.map(row =>
+      columns.map(col => {
+        const val = String(row[col] ?? "");
+        return val.includes(",") || val.includes('"')
+          ? `"${val.replace(/"/g, '""')}"` : val;
+      }).join(",")
+    );
+    const blob = new Blob([header + "\n" + csvRows.join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "mergeai-results.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }, []);
+
+  // Download results as Excel
+  const downloadExcel = useCallback(async (columns: string[], rows: Record<string, unknown>[]) => {
+    const XLSX = await import("xlsx");
+    const ws = XLSX.utils.json_to_sheet(rows, { header: columns });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Results");
+    XLSX.writeFile(wb, "mergeai-results.xlsx");
+  }, []);
 
   // Format column header: snake_case / camelCase / lowercase → Title Case
   const formatHeader = (col: string) =>
@@ -391,7 +452,7 @@ export default function Dashboard() {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv"
+          accept=".csv,.xlsx,.xls"
           className="hidden"
           onChange={handleFileUpload}
         />
@@ -400,7 +461,7 @@ export default function Dashboard() {
           disabled={uploading}
           className="mt-auto w-full py-2 px-4 border border-dashed border-[#1e3a5f] rounded-lg text-sm text-blue-200/60 hover:border-blue-500 hover:text-blue-400 transition disabled:opacity-50"
         >
-          {uploading ? "Uploading..." : "+ Upload CSV"}
+          {uploading ? "Uploading..." : "+ Upload Excel / CSV"}
         </button>
         {uploadError && (
           <div className="mt-2 p-2 text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg">
@@ -587,7 +648,7 @@ export default function Dashboard() {
                 disabled={uploading}
                 className="mt-auto w-full py-2.5 px-4 border border-dashed border-[#1e3a5f] rounded-lg text-sm text-blue-200/60 hover:border-blue-500 hover:text-blue-400 transition disabled:opacity-50"
               >
-                {uploading ? "Uploading..." : "+ Upload CSV"}
+                {uploading ? "Uploading..." : "+ Upload Excel / CSV"}
               </button>
               {uploadError && (
                 <div className="mt-2 p-2 text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg">
@@ -859,6 +920,22 @@ export default function Dashboard() {
                                 ))}
                               </tbody>
                             </table>
+                          </div>
+
+                          {/* Download buttons */}
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={() => downloadExcel(msg.result!.columns, msg.result!.rows)}
+                              className="text-xs px-3 py-1.5 rounded-lg bg-[#1e3a5f]/30 text-green-300 hover:bg-[#1e3a5f]/60 transition"
+                            >
+                              Download Excel
+                            </button>
+                            <button
+                              onClick={() => downloadCSV(msg.result!.columns, msg.result!.rows)}
+                              className="text-xs px-3 py-1.5 rounded-lg bg-[#1e3a5f]/30 text-blue-300 hover:bg-[#1e3a5f]/60 transition"
+                            >
+                              Download CSV
+                            </button>
                           </div>
                         </div>
                       )}
