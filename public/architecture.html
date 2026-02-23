@@ -554,11 +554,11 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <div class="stats-banner">
     <div class="stat-card">
-      <span class="number">3,956</span>
+      <span class="number">4,060</span>
       <span class="label">Lines of TypeScript</span>
     </div>
     <div class="stat-card">
-      <span class="number">30</span>
+      <span class="number">31</span>
       <span class="label">TypeScript Files</span>
     </div>
     <div class="stat-card">
@@ -966,7 +966,7 @@
   <!-- API ENDPOINTS                                          -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div class="section">
-    <h2 class="section-title">API Endpoints (4 Routes)</h2>
+    <h2 class="section-title">API Endpoints (5 Routes)</h2>
     <div class="endpoint">
       <span class="method method-post">POST</span>
       <span class="endpoint-path">/api/query</span>
@@ -987,13 +987,18 @@
       <span class="endpoint-path">/api/files/[id]/preview</span>
       <span class="endpoint-desc">Preview file data — returns first 20 rows with ownership verification</span>
     </div>
+    <div class="endpoint">
+      <span class="method method-delete" style="background:#7f1d1d; color:#fca5a5;">DELETE</span>
+      <span class="endpoint-path">/api/files/[id]</span>
+      <span class="endpoint-desc">Delete uploaded file — removes file record and all rows, ownership verified</span>
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- PROJECT STRUCTURE — Proper vertical tree               -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div class="section">
-    <h2 class="section-title">Project Structure (30 TypeScript Files)</h2>
+    <h2 class="section-title">Project Structure (31 TypeScript Files)</h2>
     <div class="file-tree"><span class="dir">src/</span>
 <span class="dir">├── app/</span>
 <span class="dir">│   ├── api/</span>
@@ -1006,8 +1011,8 @@
 <span class="dir">│   │       └── [id]/preview/</span>
 │   │           └── <span class="hl">route.ts</span>          <span class="meta">62 lines — data preview</span>
 <span class="dir">│   ├── dashboard/</span>
-│   │   └── <span class="hl">page.tsx</span>                  <span class="meta">1,077 lines — main app UI</span>
-│   ├── <span class="file">page.tsx</span>                      <span class="meta">322 lines — landing page</span>
+│   │   └── <span class="hl">page.tsx</span>                  <span class="meta">1,119 lines — main app UI</span>
+│   ├── <span class="file">page.tsx</span>                      <span class="meta">333 lines — landing page</span>
 │   ├── <span class="file">layout.tsx</span>                    <span class="meta">root layout + Clerk provider</span>
 │   ├── <span class="file">loading.tsx</span>                   <span class="meta">loading state</span>
 │   ├── <span class="file">globals.css</span>                   <span class="meta">Tailwind + animations</span>
@@ -1077,7 +1082,7 @@
 
     <!-- Stats -->
     <div class="footer-stats">
-      3,956 Lines of Code &bull; 30 Files &bull; 2 Tables &bull; 5 AI Agents &bull; 2 NVIDIA Models
+      4,060 Lines of Code &bull; 31 Files &bull; 2 Tables &bull; 5 AI Agents &bull; 2 NVIDIA Models
     </div>
   </div>
 
