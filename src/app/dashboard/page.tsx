@@ -22,6 +22,7 @@ interface FileInfo {
   id: string;
   fileName: string;
   columns: string[];
+  columnTypes?: Record<string, string>;
   rowCount: number;
   isDemo?: boolean;
 }
@@ -64,6 +65,7 @@ export default function Dashboard() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
   const [showSchemaMap, setShowSchemaMap] = useState(false);
+  const [mobileSidebar, setMobileSidebar] = useState(false);
   const [previewData, setPreviewData] = useState<{
     fileName: string;
     columns: string[];
@@ -407,16 +409,215 @@ export default function Dashboard() {
         )}
       </aside>
 
+      {/* Mobile Sidebar Overlay — slides in from left */}
+      {mobileSidebar && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setMobileSidebar(false)}
+          />
+          {/* Panel */}
+          <aside className="absolute left-0 top-0 bottom-0 w-[85vw] max-w-[340px] bg-[#091320] border-r border-[#1e3a5f]/30 flex flex-col overflow-y-auto animate-slide-in-left">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e3a5f]/30">
+              <h2 className="text-sm font-semibold text-blue-200/60 uppercase tracking-wider">
+                Your Data
+              </h2>
+              <button
+                onClick={() => setMobileSidebar(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#1e3a5f]/30 hover:bg-red-500/30 text-blue-200/60 hover:text-red-400 transition text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 flex-1 flex flex-col">
+              {/* Demo Files */}
+              {demoFiles.length > 0 && (
+                <div className="mb-6">
+                  <p className="text-xs text-blue-200/40 mb-2">Demo Files</p>
+                  {demoFiles.map((file) => {
+                    const isSelected = selectedFileIds.has(file.id);
+                    const canSelect = isSelected || selectedFileIds.size < MAX_MAP_FILES;
+                    return (
+                      <div
+                        key={file.id}
+                        className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition"
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            readOnly
+                            onClick={() => canSelect && toggleFileSelection(file.id)}
+                            className="accent-blue-500 w-3.5 h-3.5 cursor-pointer shrink-0"
+                          />
+                          <span className="text-green-400 text-xs">●</span>
+                          <span
+                            className="text-sm font-medium truncate cursor-pointer hover:text-blue-400 transition"
+                            onClick={() => { openPreview(file.id); setMobileSidebar(false); }}
+                          >
+                            {file.fileName}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-1 pl-8">
+                          <p className="text-xs text-blue-200/40">
+                            {file.columns.length} cols · {file.rowCount} rows
+                          </p>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openPreview(file.id); setMobileSidebar(false); }}
+                            className="text-[10px] text-blue-400/50 hover:text-blue-300 transition"
+                          >
+                            Preview
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* User Files */}
+              <div className="mb-4">
+                <p className="text-xs text-blue-200/40 mb-2">Your Files</p>
+                {userFiles.length === 0 ? (
+                  <p className="text-xs text-blue-200/30 italic px-2">
+                    None uploaded yet
+                  </p>
+                ) : (
+                  userFiles.map((file) => {
+                    const isSelected = selectedFileIds.has(file.id);
+                    const canSelect = isSelected || selectedFileIds.size < MAX_MAP_FILES;
+                    return (
+                      <div
+                        key={file.id}
+                        className="mb-2 p-2 bg-[#111d33]/70 rounded-lg hover:bg-[#111d33] transition"
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            readOnly
+                            onClick={() => canSelect && toggleFileSelection(file.id)}
+                            className="accent-blue-500 w-3.5 h-3.5 cursor-pointer shrink-0"
+                          />
+                          <span className="text-blue-400 text-xs">●</span>
+                          <span
+                            className="text-sm font-medium truncate cursor-pointer hover:text-blue-400 transition"
+                            onClick={() => { openPreview(file.id); setMobileSidebar(false); }}
+                          >
+                            {file.fileName}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-1 pl-8">
+                          <p className="text-xs text-blue-200/40">
+                            {file.columns.length} cols · {file.rowCount} rows
+                          </p>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openPreview(file.id); setMobileSidebar(false); }}
+                            className="text-[10px] text-blue-400/50 hover:text-blue-300 transition"
+                          >
+                            Preview
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Selection hint */}
+              {selectedFileIds.size > 0 && (
+                <p className="text-[10px] text-blue-200/30 mb-2 px-1">
+                  {selectedFileIds.size}/{MAX_MAP_FILES} files selected for Schema Map
+                </p>
+              )}
+
+              {/* Schema Map — inside mobile sidebar */}
+              {selectedFiles.length >= 2 && (
+                <div className="mb-4 border border-[#1e3a5f]/30 rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-2 bg-[#0c1929]/80">
+                    <span className="text-xs font-semibold text-blue-300">Schema Map</span>
+                    <button
+                      onClick={() => setShowSchemaMap(!showSchemaMap)}
+                      className="text-[10px] text-blue-300/60 hover:text-blue-300 transition"
+                    >
+                      {showSchemaMap ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                  {showSchemaMap && (
+                    <div className="w-full" style={{ height: "250px" }}>
+                      <SchemaMap
+                        files={selectedFiles}
+                        joins={joins}
+                        onRemoveFile={removeFileFromMap}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Suggestion chips — inside mobile sidebar */}
+              {suggestions.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[10px] text-blue-200/40 mb-1.5">Try:</p>
+                  <div className="flex flex-col gap-1.5">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s.text}
+                        onClick={() => { handleSubmit(s.text); setMobileSidebar(false); }}
+                        disabled={isAgentActive}
+                        className={`px-3 py-2 rounded-lg text-xs text-left border transition ${
+                          s.type === "cross"
+                            ? "border-green-500/30 text-green-400/80 hover:border-green-500 bg-green-500/5"
+                            : "border-[#1e3a5f] text-blue-200/60 hover:border-blue-500"
+                        } disabled:opacity-30`}
+                      >
+                        {s.type === "cross" ? "⚡ " : ""}{s.text}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="mt-auto w-full py-2.5 px-4 border border-dashed border-[#1e3a5f] rounded-lg text-sm text-blue-200/60 hover:border-blue-500 hover:text-blue-400 transition disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "+ Upload CSV"}
+              </button>
+              {uploadError && (
+                <div className="mt-2 p-2 text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  {uploadError}
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
+
       {/* Main Chat Area */}
       <main className="flex-1 flex flex-col relative overflow-hidden">
         {/* Blue sun radial glow */}
         <div className="absolute top-[30%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full bg-[radial-gradient(circle,_#2563eb_0%,_#1e40af_20%,_#1e3a8a_35%,_#0c1929_65%)] opacity-30 blur-2xl pointer-events-none z-0" />
 
         {/* Top Nav */}
-        <header className="flex items-center justify-between px-6 py-3 border-b border-[#1e3a5f]/30 relative z-10">
-          <h1 className="text-lg font-bold">
-            <span className="text-blue-400">Merge</span>AI
-          </h1>
+        <header className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-[#1e3a5f]/30 relative z-10">
+          <div className="flex items-center gap-3">
+            {/* Hamburger — mobile only */}
+            <button
+              onClick={() => setMobileSidebar(true)}
+              className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg border border-[#1e3a5f] text-blue-200/60 hover:text-blue-300 hover:border-blue-500 transition"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
+            <Link href="/" className="text-lg font-bold hover:opacity-80 transition">
+              <span className="text-blue-400">Merge</span>AI
+            </Link>
+          </div>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowUserGuide(!showUserGuide)}
@@ -497,7 +698,7 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={() => setShowSchemaMap(!showSchemaMap)}
-                className="text-xs text-blue-300/60 hover:text-blue-300 transition"
+                className="text-sm text-blue-300 hover:text-blue-200 transition font-medium"
               >
                 {showSchemaMap ? "Hide" : "Show"}
               </button>

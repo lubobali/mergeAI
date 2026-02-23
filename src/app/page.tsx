@@ -63,7 +63,7 @@ export default function LandingPage() {
             exactly how they think.
           </p>
           <p className="text-sm text-blue-200/40 mb-10">
-            Joins across files automatically · Real PostgreSQL · SQL you can inspect
+            Built with Adal CLI · Joins across files automatically · Real PostgreSQL · SQL you can inspect
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
@@ -97,7 +97,7 @@ export default function LandingPage() {
               step: "1",
               icon: "📁",
               title: "Upload Your Files",
-              desc: "Drag and drop CSV files. We auto-detect columns, types, and relationships.",
+              desc: "Drag and drop Excel or CSV files. We auto-detect columns, types, and relationships.",
             },
             {
               step: "2",
@@ -131,6 +131,71 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Features */}
+      <section className="max-w-5xl mx-auto py-20 px-6 relative z-10">
+        <h2 className="text-3xl font-bold text-center mb-4">Powerful Features</h2>
+        <p className="text-blue-200/60 text-center mb-16 max-w-2xl mx-auto">
+          Everything you need to go from raw spreadsheets to actionable insights.
+        </p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              icon: "📊",
+              title: "Interactive Charts",
+              desc: "Plotly.js visualizations with hover tooltips, zoom, pan, and PNG download.",
+            },
+            {
+              icon: "🔗",
+              title: "Schema Tables Map",
+              desc: "See file relationships as an interactive diagram. Drag, zoom, explore joins.",
+            },
+            {
+              icon: "🔍",
+              title: "Data Table Preview",
+              desc: "Inspect your uploaded data instantly. Color-coded columns by type.",
+            },
+            {
+              icon: "⚡",
+              title: "AI-Suggested Queries",
+              desc: "Smart questions generated from YOUR data. One click to run.",
+            },
+            {
+              icon: "🔀",
+              title: "Cross-File Joins",
+              desc: "Upload multiple files. AI automatically discovers connections between them.",
+            },
+            {
+              icon: "📁",
+              title: "Excel & CSV Upload",
+              desc: "Upload .xlsx, .xls, or .csv files. We handle the parsing automatically.",
+            },
+            {
+              icon: "⬇️",
+              title: "Export Results",
+              desc: "Download query results as Excel or CSV. Take your insights anywhere.",
+            },
+            {
+              icon: "💬",
+              title: "Follow-up Questions",
+              desc: "Ask follow-ups naturally. AI remembers context from previous queries.",
+            },
+          ].map((item, i) => (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="bg-[#111d33]/70 border border-[#1e3a5f]/50 rounded-xl p-5"
+            >
+              <div className="text-2xl mb-2">{item.icon}</div>
+              <h3 className="font-semibold mb-1 text-sm">{item.title}</h3>
+              <p className="text-xs text-blue-200/60 leading-relaxed">{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* Agent Architecture */}
       <section className="max-w-5xl mx-auto py-20 px-6 relative z-10">
         <h2 className="text-3xl font-bold text-center mb-4">
@@ -156,7 +221,7 @@ export default function LandingPage() {
             },
             {
               icon: "✓",
-              name: "Validator",
+              name: "Validator Agent",
               desc: "Ensures accuracy",
               model: "Deterministic",
             },
@@ -224,12 +289,17 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-[#1e3a5f]/30 py-8 text-center text-blue-200/40 text-sm relative z-10">
         <p>
-          Built with Next.js 15 · NVIDIA NIM · Neon PostgreSQL · Drizzle ORM
+          <a
+            href="/architecture.html"
+            className="text-blue-400 hover:underline"
+          >
+            Architecture & Tech Stack →
+          </a>
         </p>
         <p className="mt-2">
           Created by{" "}
           <a
-            href="https://lubot.ai"
+            href="https://www.linkedin.com/in/lubo-bali/"
             className="text-blue-400 hover:underline"
             target="_blank"
           >

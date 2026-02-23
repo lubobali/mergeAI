@@ -35,22 +35,22 @@ export default function DataPreview({
   onClose,
 }: DataPreviewProps) {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#0c1929] border border-[#1e3a5f] rounded-2xl w-full max-w-5xl max-h-[85vh] flex flex-col shadow-2xl">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-2 md:p-4">
+      <div className="bg-[#0c1929] border border-[#1e3a5f] rounded-xl md:rounded-2xl w-full max-w-5xl max-h-[90vh] md:max-h-[85vh] flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1e3a5f]/50">
-          <div>
-            <h2 className="text-lg font-bold text-blue-300 flex items-center gap-2">
-              <span className="text-xl">📊</span>
-              {fileName}
+        <div className="flex items-center justify-between px-3 py-3 md:px-6 md:py-4 border-b border-[#1e3a5f]/50">
+          <div className="min-w-0 flex-1 mr-3">
+            <h2 className="text-sm md:text-lg font-bold text-blue-300 flex items-center gap-2 truncate">
+              <span className="text-base md:text-xl shrink-0">📊</span>
+              <span className="truncate">{fileName}</span>
             </h2>
-            <p className="text-xs text-blue-200/40 mt-0.5">
+            <p className="text-[10px] md:text-xs text-blue-200/40 mt-0.5">
               {rows.length} of {rowCount.toLocaleString()} rows &middot; {columns.length} columns
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-[#1e3a5f]/30 hover:bg-red-500/30 text-blue-200/60 hover:text-red-400 transition text-lg"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-[#1e3a5f]/30 hover:bg-red-500/30 text-blue-200/60 hover:text-red-400 transition text-lg shrink-0"
           >
             ✕
           </button>
@@ -115,12 +115,12 @@ export default function DataPreview({
         </div>
 
         {/* Footer — type legend */}
-        <div className="px-6 py-3 border-t border-[#1e3a5f]/30 flex items-center gap-4 text-[11px]">
+        <div className="px-3 py-2 md:px-6 md:py-3 border-t border-[#1e3a5f]/30 flex items-center gap-3 md:gap-4 text-[10px] md:text-[11px]">
           <span className="text-blue-300">● Numbers</span>
           <span className="text-purple-400">● Dates</span>
           <span className="text-slate-400">● Text</span>
           <span className="ml-auto text-blue-200/30">
-            Showing {rows.length} of {rowCount.toLocaleString()} rows
+            {rows.length} of {rowCount.toLocaleString()} rows
           </span>
         </div>
       </div>

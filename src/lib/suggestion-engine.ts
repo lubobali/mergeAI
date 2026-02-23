@@ -25,6 +25,7 @@ interface FileInput {
   id: string;
   fileName: string;
   columns: string[];
+  columnTypes?: Record<string, string>;
 }
 
 interface FileAnalysis {
@@ -47,8 +48,13 @@ function shortName(fileName: string): string {
     .toLowerCase();
 }
 
-/** Analyze a file's columns by category. */
+/** Analyze a file's columns by category.
+ *  Source of truth: columnTypes from actual data (detected during upload).
+ *  Name-based categorization is secondary — a column named "Score"
+ *  is only a metric if the real data is numeric.
+ */
 function analyzeFile(file: FileInput): FileAnalysis {
+  const types = file.columnTypes || {};
   const byCategory: Record<ColumnCategory, string[]> = {
     id: [],
     metric: [],
@@ -59,8 +65,20 @@ function analyzeFile(file: FileInput): FileAnalysis {
   };
 
   for (const col of file.columns) {
-    const cat = categorizeColumn(col);
-    byCategory[cat].push(col);
+    const nameCat = categorizeColumn(col);
+    const realType = types[col]; // "number" | "text" | undefined
+
+    // Universal rule: metric ONLY if actual data is numeric
+    if (nameCat === "metric") {
+      if (realType === "number") {
+        byCategory.metric.push(col);
+      } else {
+        // Name says metric but data is text — demote to dimension
+        byCategory.dimension.push(col);
+      }
+    } else {
+      byCategory[nameCat].push(col);
+    }
   }
 
   return {
