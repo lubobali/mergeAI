@@ -122,7 +122,7 @@ function getNodePositions(count: number): { x: number; y: number }[] {
     case 1:
       return [{ x: 0, y: 50 }];
     case 2:
-      return [{ x: 0, y: 50 }, { x: 350, y: 50 }];
+      return [{ x: 50, y: 50 }, { x: 500, y: 50 }];
     case 3:
       return [{ x: 0, y: 0 }, { x: 350, y: 0 }, { x: 175, y: 200 }];
     case 4:
@@ -222,13 +222,14 @@ export default function SchemaMap({ files, joins, onRemoveFile }: SchemaMapProps
   return (
     <div className="w-full h-full relative">
       <ReactFlow
+        key={files.map((f) => f.id).join(",")}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         nodeTypes={nodeTypes}
         colorMode="dark"
         fitView
-        fitViewOptions={{ padding: 0.3 }}
+        fitViewOptions={{ padding: 0.5, includeHiddenNodes: true }}
         proOptions={{ hideAttribution: true }}
         panOnDrag
         zoomOnScroll

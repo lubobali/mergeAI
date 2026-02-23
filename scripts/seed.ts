@@ -18,6 +18,14 @@ const DEMO_FILES = [
     path: "/Users/lu/LuBot_hybrid/Test_files/Joins test/training_and_development_data.csv",
     name: "training_and_development_data.csv",
   },
+  {
+    path: "/Users/lu/LuBot_hybrid/Test_files/Joins test/employee_engagement_survey_data.csv",
+    name: "employee_engagement_survey_data.csv",
+  },
+  {
+    path: "/Users/lu/LuBot_hybrid/Test_files/Joins test/recruitment_data.csv",
+    name: "recruitment_data.csv",
+  },
 ];
 
 async function seed() {

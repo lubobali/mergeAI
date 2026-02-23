@@ -64,7 +64,7 @@ export default function Dashboard() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
-  const [showSchemaMap, setShowSchemaMap] = useState(false);
+  const [showSchemaMap, setShowSchemaMap] = useState(true);
   const [mobileSidebar, setMobileSidebar] = useState(false);
   const [previewData, setPreviewData] = useState<{
     fileName: string;
@@ -650,7 +650,7 @@ export default function Dashboard() {
                     </button>
                   </div>
                   {showSchemaMap && (
-                    <div className="w-full" style={{ height: "250px" }}>
+                    <div className="w-full" style={{ height: "350px" }}>
                       <SchemaMap
                         files={selectedFiles}
                         joins={joins}
@@ -761,10 +761,10 @@ export default function Dashboard() {
                     </div>
                     <h3 className="font-semibold text-[10px] md:text-sm mb-0.5 md:mb-1">
                       {agent === "schema"
-                        ? "Schema"
+                        ? "Schema Agent"
                         : agent === "sql"
-                          ? "SQL"
-                          : "Validator"}
+                          ? "SQL Agent"
+                          : "Validator Agent"}
                     </h3>
                     <p className="text-[9px] md:text-xs text-blue-200/60 h-4 md:h-8 overflow-hidden leading-tight">
                       {agents[agent].message || (
