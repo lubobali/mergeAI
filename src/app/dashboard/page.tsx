@@ -125,6 +125,30 @@ export default function Dashboard() {
     }
   }, []);
 
+  const deleteFile = useCallback(async (fileId: string, fileName: string) => {
+    if (!confirm(`Delete "${fileName}"? This will permanently remove the file and all its data.`)) return;
+    try {
+      const res = await fetch(`/api/files/${fileId}`, {
+        method: "DELETE",
+        headers: { "x-session-id": getSessionId() },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to delete file");
+        return;
+      }
+      // Remove from local state
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+      setSelectedFileIds((prev) => {
+        const next = new Set(prev);
+        next.delete(fileId);
+        return next;
+      });
+    } catch (err) {
+      console.error("Delete file error:", err);
+    }
+  }, []);
+
   const isAgentActive =
     isStreaming ||
     agents.schema.status === "active" ||
@@ -429,12 +453,21 @@ export default function Dashboard() {
                     <p className="text-xs text-blue-200/40">
                       {file.columns.length} cols · {file.rowCount} rows
                     </p>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); openPreview(file.id); }}
-                      className="text-[10px] text-blue-400/50 hover:text-blue-300 transition"
-                    >
-                      Preview
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); openPreview(file.id); }}
+                        className="text-[10px] text-blue-400/50 hover:text-blue-300 transition"
+                      >
+                        Preview
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteFile(file.id, file.fileName); }}
+                        className="text-[10px] text-red-400/50 hover:text-red-300 transition"
+                        title="Delete file"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -575,12 +608,21 @@ export default function Dashboard() {
                           <p className="text-xs text-blue-200/40">
                             {file.columns.length} cols · {file.rowCount} rows
                           </p>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); openPreview(file.id); setMobileSidebar(false); }}
-                            className="text-[10px] text-blue-400/50 hover:text-blue-300 transition"
-                          >
-                            Preview
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openPreview(file.id); setMobileSidebar(false); }}
+                              className="text-[10px] text-blue-400/50 hover:text-blue-300 transition"
+                            >
+                              Preview
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); deleteFile(file.id, file.fileName); }}
+                              className="text-[10px] text-red-400/50 hover:text-red-300 transition"
+                              title="Delete file"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
