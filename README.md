@@ -26,6 +26,8 @@ You upload two spreadsheets that have never seen each other. One has employee da
 
 Here's what happens — and you watch it happen live:
 
+**Schema Map** — see your table connections to make join queries:
+
 <p align="center">
   <img src="screenshots/schema-map.png" alt="MergeAI Schema Map — auto-detected file joins" width="800" />
 </p>
