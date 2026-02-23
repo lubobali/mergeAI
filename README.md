@@ -67,6 +67,8 @@ The whole thing takes about 8 seconds.
 
 Your data lives in a real PostgreSQL database. The queries are real SQL. The joins are real joins. Click "View SQL" to see exactly what the AI wrote — full transparency.
 
+**Table Preview** — click any file name to browse your data before querying:
+
 <p align="center">
   <img src="screenshots/data-preview.png" alt="Data Preview — browse your CSV data before querying" width="800" />
 </p>
