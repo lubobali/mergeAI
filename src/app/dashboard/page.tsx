@@ -844,19 +844,21 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-6 py-8 relative z-10">
           {!hasMessages ? (
             /* Empty state — show example queries */
-            <div className="max-w-2xl mx-auto text-center pt-16">
-              <h2 className="text-3xl font-bold mb-2">
+            <div className="max-w-2xl mx-auto text-center pt-16 relative">
+              {/* Breathing glow behind welcome text */}
+              <div className="absolute top-8 left-1/2 w-[300px] h-[300px] rounded-full bg-[radial-gradient(circle,_#2563eb_0%,_#0c1929_70%)] pointer-events-none sun-breathe" style={{ opacity: 0.3 }} />
+              <h2 className="text-3xl font-bold mb-2 relative z-10">
                 <span className="text-blue-400">Merge</span>AI
               </h2>
-              <p className="text-blue-200/60 mb-8">
+              <p className="text-blue-200/60 mb-8 relative z-10">
                 Your AI Data Analyst — ask anything about your data
               </p>
-              <div className="flex flex-wrap gap-2 justify-center">
+              <div className="flex flex-wrap gap-2 justify-center relative z-10">
                 {EXAMPLE_QUERIES.map((eq) => (
                   <button
                     key={eq}
                     onClick={() => handleSubmit(eq)}
-                    className="px-4 py-2 bg-[#111d33] border border-[#1e3a5f] rounded-full text-sm text-blue-100/70 hover:border-blue-500 hover:text-blue-400 transition"
+                    className="px-4 py-2 bg-[#111d33] border border-[#1e3a5f] rounded-full text-sm text-blue-100/70 hover:border-blue-500 hover:text-blue-400 transition btn-shimmer"
                   >
                     {eq}
                   </button>
@@ -880,30 +882,50 @@ export default function Dashboard() {
                     <div className="space-y-3">
                       {/* Error */}
                       {msg.error && (
-                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-300 text-sm">
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4 }}
+                          className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-300 text-sm"
+                        >
                           {msg.error}
-                        </div>
+                        </motion.div>
                       )}
 
                       {/* NL Summary */}
                       {msg.result?.summary && (
-                        <div className="bg-[#111d33]/80 border border-[#1e3a5f] rounded-xl p-4">
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4 }}
+                          className="bg-[#111d33]/80 border border-[#1e3a5f] rounded-xl p-4"
+                        >
                           <p className="text-blue-100/90 text-sm leading-relaxed">
                             {msg.result.summary}
                           </p>
-                        </div>
+                        </motion.div>
                       )}
 
                       {/* Interactive Chart */}
                       {msg.result?.chart && (
-                        <div className="bg-[#111d33]/80 border border-[#1e3a5f] rounded-xl p-4 overflow-hidden">
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, delay: 0.1 }}
+                          className="bg-[#111d33]/80 border border-[#1e3a5f] rounded-xl p-4 overflow-hidden"
+                        >
                           <PlotlyChart config={msg.result.chart} />
-                        </div>
+                        </motion.div>
                       )}
 
                       {/* Results Table */}
                       {msg.result && msg.result.rows.length > 0 && (
-                        <div className="space-y-3">
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, delay: 0.2 }}
+                          className="space-y-3"
+                        >
                           <div className="flex items-center gap-4 text-sm text-blue-200/60">
                             <span>
                               {msg.result.chart && msg.result.rows.length > 10
@@ -948,7 +970,7 @@ export default function Dashboard() {
                                 {msg.result.rows.slice(0, msg.result.chart ? 10 : 50).map((row, i) => (
                                   <tr
                                     key={i}
-                                    className="border-b border-[#1e3a5f]/30 hover:bg-[#111d33]/50"
+                                    className="border-b border-[#1e3a5f]/30 hover:bg-blue-500/10 transition-colors duration-200"
                                   >
                                     {msg.result!.columns.map((col) => (
                                       <td
@@ -979,7 +1001,7 @@ export default function Dashboard() {
                               Download CSV
                             </button>
                           </div>
-                        </div>
+                        </motion.div>
                       )}
 
                       {/* No results */}

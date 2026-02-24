@@ -3,14 +3,141 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { useState, useEffect, useRef } from "react";
+
+const agents = [
+  { icon: "🔍", name: "Schema Agent", desc: "Discovers relationships", model: "Nano 8B", action: "Analyzing schema..." },
+  { icon: "🔨", name: "SQL Agent", desc: "Builds the query", model: "Ultra 253B", action: "Generating SQL..." },
+  { icon: "✓", name: "Validator Agent", desc: "Ensures accuracy", model: "Deterministic", action: "Validating results..." },
+];
+
+function AgentPipelineSection() {
+  const [activeAgent, setActiveAgent] = useState(-1);
+  const [doneAgents, setDoneAgents] = useState<Set<number>>(new Set());
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.3 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let step = 0;
+    const timeline = [
+      // Agent 0: running
+      () => { setActiveAgent(0); setDoneAgents(new Set()); },
+      // Agent 0: done, Agent 1: running
+      () => { setActiveAgent(1); setDoneAgents(new Set([0])); },
+      // Agent 1: done, Agent 2: running
+      () => { setActiveAgent(2); setDoneAgents(new Set([0, 1])); },
+      // All done
+      () => { setActiveAgent(-1); setDoneAgents(new Set([0, 1, 2])); },
+      // Reset
+      () => { setActiveAgent(-1); setDoneAgents(new Set()); },
+    ];
+
+    const delays = [0, 1500, 1500, 1200, 2000];
+
+    let timeout: NodeJS.Timeout;
+    const runStep = () => {
+      if (step < timeline.length) {
+        timeline[step]();
+        step++;
+        if (step < timeline.length) {
+          timeout = setTimeout(runStep, delays[step]);
+        } else {
+          // Loop
+          timeout = setTimeout(() => { step = 0; runStep(); }, delays[delays.length - 1]);
+        }
+      }
+    };
+    timeout = setTimeout(runStep, 500);
+    return () => clearTimeout(timeout);
+  }, [isVisible]);
+
+  return (
+    <section ref={sectionRef} className="max-w-5xl mx-auto py-20 px-6 relative z-10">
+      <h2 className="text-3xl font-bold text-center mb-4">
+        3 AI Agents That Talk To Each Other
+      </h2>
+      <p className="text-blue-200/60 text-center mb-16 max-w-2xl mx-auto">
+        Not just one AI. Three specialized agents that collaborate, retry, and
+        self-correct — live, in front of your eyes.
+      </p>
+      <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+        {agents.map((agent, i) => {
+          const isRunning = activeAgent === i;
+          const isDone = doneAgents.has(i);
+          return (
+            <div key={agent.name} className="flex items-center gap-6">
+              <div
+                className={`relative bg-[#111d33] rounded-xl p-6 text-center w-48 transition-all duration-500 ${
+                  isRunning
+                    ? "border-2 border-blue-400 shadow-lg shadow-blue-500/20"
+                    : isDone
+                    ? "border-2 border-green-400/60"
+                    : "border border-[#1e3a5f]"
+                }`}
+              >
+                {isRunning && (
+                  <div className="absolute inset-0 rounded-xl border-2 border-blue-400 animate-pulse pointer-events-none" />
+                )}
+                <div className="text-3xl mb-2">
+                  {isDone ? (
+                    <span className="text-green-400">✓</span>
+                  ) : (
+                    agent.icon
+                  )}
+                </div>
+                <h3 className="font-semibold mb-1">{agent.name}</h3>
+                <p className={`text-sm mb-2 transition-all duration-300 ${
+                  isRunning ? "text-blue-300" : "text-blue-200/60"
+                }`}>
+                  {isRunning ? agent.action : isDone ? "Done" : agent.desc}
+                </p>
+                <span className={`text-xs px-2 py-1 rounded-full transition-all duration-300 ${
+                  isRunning
+                    ? "bg-blue-500/30 text-blue-200"
+                    : isDone
+                    ? "bg-green-500/20 text-green-300"
+                    : "bg-[#1e3a5f] text-blue-200"
+                }`}>
+                  {agent.model}
+                </span>
+              </div>
+              {i < 2 && (
+                <div className={`text-2xl hidden md:block transition-all duration-500 ${
+                  activeAgent === i + 1
+                    ? "text-blue-400 translate-x-1 scale-125"
+                    : doneAgents.has(i)
+                    ? "text-green-400/60"
+                    : "text-blue-400/40"
+                }`}>
+                  →
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#0c1929] text-white relative overflow-hidden">
+    <div className="min-h-screen bg-[#0c1929] text-white relative">
       {/* Blue sun radial glow — center shining outward */}
-      <div className="absolute top-[20%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] rounded-full bg-[radial-gradient(circle,_#2563eb_0%,_#1e40af_20%,_#1e3a8a_35%,_#0c1929_65%)] opacity-50 blur-2xl pointer-events-none z-0" />
+      <div className="absolute top-[20%] left-1/2 w-[1200px] h-[1200px] rounded-full bg-[radial-gradient(circle,_#2563eb_0%,_#1e40af_20%,_#1e3a8a_35%,_#0c1929_65%)] blur-2xl pointer-events-none z-0 overflow-hidden sun-breathe" />
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-8 py-5 max-w-7xl mx-auto relative z-10">
+      <nav className="sticky top-2 flex items-center justify-between px-8 py-4 max-w-6xl mx-auto z-20 bg-[#0c1929]/70 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg shadow-black/20 transition-all">
         <div className="text-2xl font-bold tracking-tight">
           <span className="text-blue-400">Merge</span>AI
         </div>
@@ -39,7 +166,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/sign-up"
-              className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 rounded-lg transition"
+              className="btn-shimmer px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 rounded-lg transition"
             >
               Get Started Free
             </Link>
@@ -65,10 +192,12 @@ export default function LandingPage() {
           <div className="inline-block px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 text-sm mb-6">
             3 AI Agents Working Together
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-white">
-            Upload. Ask.
+          <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6">
+            <span className="text-shimmer-white">
+              Upload. Ask.
+            </span>
             <br />
-            <span className="bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+            <span className="text-shimmer-gradient">
               Watch AI Think.
             </span>
           </h1>
@@ -85,7 +214,7 @@ export default function LandingPage() {
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/dashboard"
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg text-lg font-medium transition"
+              className="btn-shimmer px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg text-lg font-medium transition"
             >
               Try with Sample Data →
             </Link>
@@ -104,6 +233,9 @@ export default function LandingPage() {
           </div>
         </motion.div>
       </section>
+
+      {/* Agent Architecture — Animated Pipeline */}
+      <AgentPipelineSection />
 
       {/* How It Works */}
       <section id="how-it-works" className="max-w-5xl mx-auto py-20 px-6 relative z-10">
@@ -203,73 +335,12 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
-              className="bg-[#111d33]/70 border border-[#1e3a5f]/50 rounded-xl p-5"
+              className="bg-[#111d33]/70 border border-[#1e3a5f]/50 rounded-xl p-5 hover:border-blue-400/50 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-default"
             >
               <div className="text-2xl mb-2">{item.icon}</div>
               <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
               <p className="text-sm text-blue-200/60 leading-relaxed">{item.desc}</p>
             </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Agent Architecture */}
-      <section className="max-w-5xl mx-auto py-20 px-6 relative z-10">
-        <h2 className="text-3xl font-bold text-center mb-4">
-          3 AI Agents That Talk To Each Other
-        </h2>
-        <p className="text-blue-200/60 text-center mb-16 max-w-2xl mx-auto">
-          Not just one AI. Three specialized agents that collaborate, retry, and
-          self-correct — live, in front of your eyes.
-        </p>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-          {[
-            {
-              icon: "🔍",
-              name: "Schema Agent",
-              desc: "Discovers relationships",
-              model: "Nano 8B",
-            },
-            {
-              icon: "🔨",
-              name: "SQL Agent",
-              desc: "Builds the query",
-              model: "Ultra 253B",
-            },
-            {
-              icon: "✓",
-              name: "Validator Agent",
-              desc: "Ensures accuracy",
-              model: "Deterministic",
-            },
-          ].map((agent, i) => (
-            <div key={agent.name} className="flex items-center gap-6">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.2 }}
-                className="bg-[#111d33] border border-[#1e3a5f] rounded-xl p-6 text-center w-48"
-              >
-                <div className="text-3xl mb-2">{agent.icon}</div>
-                <h3 className="font-semibold mb-1">{agent.name}</h3>
-                <p className="text-sm text-blue-200/60 mb-2">{agent.desc}</p>
-                <span className="text-xs px-2 py-1 bg-[#1e3a5f] rounded-full text-blue-200">
-                  {agent.model}
-                </span>
-              </motion.div>
-              {i < 2 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.2 + 0.3 }}
-                  className="text-2xl text-blue-400/40 hidden md:block"
-                >
-                  →
-                </motion.div>
-              )}
-            </div>
           ))}
         </div>
       </section>
