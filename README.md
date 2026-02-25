@@ -4,8 +4,11 @@
 
 <p align="center">
   <a href="https://merge-ai-omega.vercel.app/"><strong>Try Live</strong></a> &nbsp;|&nbsp;
+  <a href="https://www.youtube.com/watch?v=Yr0CkXKNF0M">▶️ Full Demo</a> &nbsp;|&nbsp;
+  <a href="https://www.youtube.com/watch?v=_BmN9YIQXGw">▶️ Video Demo</a> &nbsp;|&nbsp;
   <a href="#how-it-works">How It Works</a> &nbsp;|&nbsp;
-  <a href="#the-tech">Tech Stack</a> | <a href="https://merge-ai-omega.vercel.app/architecture.html">Architecture</a>
+  <a href="#the-tech">Tech Stack</a> &nbsp;|&nbsp;
+  <a href="https://merge-ai-omega.vercel.app/architecture.html">Architecture</a>
 </p>
 
 <p align="center"><i>Built solo in 48 hours for the Vibe Coding Hackathon 2026. Powered by NVIDIA NIM.</i></p>
