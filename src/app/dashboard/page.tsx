@@ -717,8 +717,11 @@ export default function Dashboard() {
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
             </button>
-            <Link href="/" className="text-lg font-bold hover:opacity-80 transition">
-              <span className="text-blue-400">Merge</span>AI
+            <Link href="/" className="group flex items-center gap-2 text-lg font-bold transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/30 group-hover:bg-blue-500/30 group-hover:border-blue-400 transition-all duration-300 group-hover:-translate-x-0.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400 group-hover:text-white transition-colors"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </span>
+              <span className="text-blue-400 group-hover:text-blue-300 transition-colors">Merge</span><span className="group-hover:text-blue-100 transition-colors">AI</span>
             </Link>
           </div>
           <div className="flex items-center gap-4">
@@ -1065,9 +1068,9 @@ export default function Dashboard() {
       {/* User Guide Modal */}
       {showUserGuide && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-[#0c1929] border border-[#1e3a5f] rounded-2xl p-8 max-w-lg w-full mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">User Guide</h2>
+          <div className="bg-[#0c1929] border border-[#1e3a5f] rounded-2xl p-8 max-w-6xl w-full mx-4">
+            <div className="flex justify-between items-start mb-2">
+              <div />
               <button
                 onClick={() => setShowUserGuide(false)}
                 className="text-blue-200/60 hover:text-white text-2xl"
@@ -1075,49 +1078,80 @@ export default function Dashboard() {
                 x
               </button>
             </div>
-            <div className="space-y-4 text-sm">
+            <div className="text-center mb-5">
+              <h2 className="text-3xl font-bold">
+                <span className="text-blue-400">Merge</span><span className="text-white">AI</span>
+              </h2>
+              <p className="text-blue-200/40 text-sm mt-1">User Guide</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4 text-[15px]">
               <div>
-                <h3 className="font-semibold text-blue-400 mb-2">
-                  Getting Started
-                </h3>
-                <p className="text-blue-200/60">
-                  1. Demo files are pre-loaded (employee data + training data)
-                  <br />
-                  2. Type a question or click an example query
-                  <br />
-                  3. Watch 3 AI agents collaborate to answer
-                  <br />
-                  4. Upload your own CSV files for custom analysis
+                <h3 className="font-semibold text-blue-400 mb-1">What is MergeAI?</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  MergeAI is your AI data analyst. Upload your spreadsheets, ask questions in plain English, and get instant answers with charts and tables. No SQL knowledge needed. I built this solo — three AI agents work together to analyze your data. Perfect for small and mid-size businesses looking to make smarter decisions, faster.
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-blue-400 mb-2">
-                  Demo Files
-                </h3>
-                <ul className="text-blue-200/60 space-y-1">
-                  <li>
-                    📊 <strong>employee_data.csv</strong> — 3,000 employees with
-                    department, salary, performance, demographics
-                  </li>
-                  <li>
-                    📊 <strong>training_data.csv</strong> — 3,000 training records
-                    with programs, costs, outcomes
-                  </li>
-                </ul>
+                <h3 className="font-semibold text-blue-400 mb-1">Getting Started</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  1. I pre-loaded 4 demo files so you can try it right away — check the sidebar for names and previews<br />
+                  2. Type a question or click a suggested query<br />
+                  3. Watch 3 AI agents collaborate to find the answer<br />
+                  4. Upload your own Excel or CSV files for custom analysis
+                </p>
               </div>
               <div>
-                <h3 className="font-semibold text-blue-400 mb-2">
-                  How the Agents Work
-                </h3>
-                <p className="text-blue-200/60">
-                  🔍 <strong>Schema Agent</strong> (Nano 8B) — Finds
-                  relationships between your files
-                  <br />
-                  🔨 <strong>SQL Agent</strong> (253B Ultra) — Generates
-                  PostgreSQL queries
-                  <br />
-                  ✓ <strong>Validator</strong> — Checks results, retries if
-                  needed (max 3 rounds)
+                <h3 className="font-semibold text-blue-400 mb-1">Cross-File Queries</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  This is what makes MergeAI special. Select multiple files using the checkboxes in the sidebar. The AI automatically discovers how your files connect (like Employee ID across tables) and joins them for you. Ask questions that span multiple files — no manual mapping needed.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-400 mb-1">Schema Map</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  When you select 2+ files, the Schema Map appears — a visual diagram showing how your files are connected. Green lines mean strong connections, dashed lines mean possible joins. It helps you understand your data relationships at a glance before you even ask a question.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-400 mb-1">Smart Suggestions</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  The suggested query pills change based on which files you have selected. Check different file combinations and you get different suggestions tailored to that data. Cross-file suggestions are highlighted in green with a lightning bolt.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-400 mb-1">Table Preview</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  Click any file name or the &quot;Preview&quot; button in the sidebar to see the first rows of your data, column types, and stats — before you even ask a question.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-400 mb-1">Download Results</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  After every query, you can download the results as <strong>Excel</strong> or <strong>CSV</strong>. Charts are interactive (powered by Plotly) — hover, zoom, and save them as images using the camera icon in the chart toolbar.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-400 mb-1">Follow-Up Questions</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  After you get an answer, just keep asking. MergeAI remembers the context so you can drill deeper — &quot;now break that down by department&quot; or &quot;show me just the top 5.&quot;
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-400 mb-1">View SQL</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  Curious what query ran behind the scenes? Click &quot;View SQL&quot; under any result to see the exact PostgreSQL query the AI generated.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-400 mb-1">Upload Your Own Files</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  Click &quot;+ Upload Excel / CSV&quot; at the bottom of the sidebar. Supports .csv, .xlsx, and .xls up to 10MB. Once uploaded, you can delete files anytime using the ✕ button.
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <h3 className="font-semibold text-blue-400 mb-1">How the 3 Agents Work</h3>
+                <p className="text-blue-200/60 leading-relaxed">
+                  🔍 <strong>Schema Agent</strong> — Reads your files, finds columns and relationships &nbsp;&nbsp; 🔨 <strong>SQL Agent</strong> — Writes the SQL query to answer your question &nbsp;&nbsp; ✓ <strong>Validator Agent</strong> — Checks the results, retries up to 3 times if something looks off
                 </p>
               </div>
             </div>

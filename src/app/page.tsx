@@ -132,6 +132,7 @@ function AgentPipelineSection() {
 }
 
 export default function LandingPage() {
+  const [contactCopied, setContactCopied] = useState(false);
   return (
     <div className="min-h-screen bg-[#0c1929] text-white relative">
       {/* Blue sun radial glow — center shining outward */}
@@ -166,6 +167,19 @@ export default function LandingPage() {
           >
             Architecture
           </a>
+          <button
+            onMouseEnter={(e) => e.currentTarget.textContent = "support@lubobali.com"}
+            onMouseLeave={(e) => { if (!contactCopied) e.currentTarget.textContent = "Contact"; }}
+            onClick={() => {
+              window.location.href = "mailto:support@lubobali.com";
+              navigator.clipboard.writeText("support@lubobali.com");
+              setContactCopied(true);
+              setTimeout(() => setContactCopied(false), 2000);
+            }}
+            className="px-4 py-2 text-sm text-blue-100/70 hover:text-white transition"
+          >
+            {contactCopied ? "Email Copied!" : "Contact"}
+          </button>
           <SignedOut>
             <Link
               href="/sign-in"
